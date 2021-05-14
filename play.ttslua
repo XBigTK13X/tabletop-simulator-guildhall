@@ -1,0 +1,168 @@
+function playSet(kind)
+  log("Playing "..kind)
+  local gameMat = spawnObject({
+    type = "Custom_Board",
+    rotation = {0, 180, 0},
+    position = {0, 1, 0}
+
+  })
+  gameMat.setCustomObject({
+    image = SGH_PATHS.asset.game_mat,
+  })
+
+  gameMat.setSnapPoints({
+    { position = {-5.5, 1, -5.00}, rotation = {0,0,0}, rotation_snap = true},
+    { position = {0, 1, -5.00}, rotation = {0,0,0}, rotation_snap = true},
+    { position = {5.5,1, -5.00}, rotation = {0,0,0}, rotation_snap = true},
+    { position = {0, 1, 5}, rotation = {0,0,0}, rotation_snap = true},
+  })
+
+  local profession_deck = nil
+  local profession_deck_position = {-7.5, 3, 5.00}
+  for ii, profession in ipairs(SGH_SETTINGS[kind].professions) do
+    if(profession_deck == nil) then
+      profession_deck = SGH_LOOKUP[kind].profession_decks[SGH_SETTINGS[kind].professions[1]]
+    else
+      profession_deck = profession_deck.putObject(SGH_LOOKUP[kind].profession_decks[profession])
+    end
+  end
+  profession_deck.setPosition(profession_deck_position)
+  profession_deck.shuffle()
+  SGH_LOOKUP.profession_deck = profession_deck
+
+  SGH_LOOKUP[kind].victory_point_deck.setPosition({0, 3, 5.00})
+  SGH_LOOKUP[kind].victory_point_deck.shuffle()
+
+  local vp_targets = {
+    -8,-4,0,4,8
+  }
+  for ii = 1,5 do
+    local card = SGH_LOOKUP[kind].victory_point_deck.takeObject({
+      position = {vp_targets[ii],3,-3},
+      rotation = {0,180,0}
+    })
+  end
+
+  for ii = 1,6 do
+    local divider = SGH_LOOKUP[kind].profession_dividers[SGH_SETTINGS[kind].professions[ii]]
+    if (ii < 4) then
+      divider.setPosition({-15, 2, 10 - (ii * 5)})
+    else
+      divider.setPosition({15, 2, 10 - ((ii - 3) * 5)})
+    end
+  end
+
+  SGH_LOOKUP[kind].victory_point_divider.setPosition({0,2,-12})
+
+  local playerMat = spawnObject({
+    type = "Custom_Board",
+    rotation = {0, 180, 0},
+    position = {-35, 1, -12.5},
+    scale = {1.25,1.25,1.25}
+  })
+
+  playerMat.setCustomObject({
+    image = SGH_PATHS.asset.player_mat
+  })
+
+ local guildhall_zone = spawnObject({
+    type = "ScriptingTrigger",
+    position = {-35, 0, -17},
+    scale = {25,8,8}
+  })
+
+  SGH_LOOKUP.player = {}
+  for ii,player in pairs(Player.getPlayers()) do
+    SGH_LOOKUP.player[player.color] = {
+        zone = {
+          guildhall = {
+            sort_debounce = nil,
+            zone = guildhall_zone,
+            objects = {}
+          }
+        }
+      }
+  end
+
+  profession_deck.deal(10, "White")
+
+  destroyObject(SGH_LOOKUP[kind].play_button)
+end
+
+function onObjectEnterScriptingZone(zone, object)
+  for ii,player in pairs(Player.getPlayers()) do
+    if(zone.getGUID() == SGH_LOOKUP.player[player.color].zone.guildhall.zone.getGUID()) then
+      SGH_LOOKUP.player[player.color].zone.guildhall.objects[object.getGUID()] = object
+    end
+  end
+end
+
+function onObjectDrop(player_color, object)
+  if(SGH_LOOKUP.player[player_color].zone.guildhall.objects[object.getGUID()] ~= nil) then
+    SGH_LOOKUP.player[player_color].zone.guildhall.objects[object.getGUID()] = nil
+    object.setVelocity({0,0,0})
+    if(SGH_LOOKUP.player[player_color].zone.guildhall.sort_debounce ~= nil) then
+      Wait.stop(SGH_LOOKUP.player[player_color].zone.guildhall.sort_debounce)
+    end
+    SGH_LOOKUP.player[player_color].zone.guildhall.sort_debounce = Wait.time(function()
+      sort_guildhall(player_color)
+      SGH_LOOKUP.player[player_color].zone.guildhall.sort_debounce = nil
+    end,
+    SGH_SETTINGS.debounce_seconds)
+  end
+end
+
+function sort_guildhall(player_color)
+  local guildhall_objects = SGH_LOOKUP.player[player_color].zone.guildhall.zone.getObjects()
+  local profession_cards = {}
+  local profession_keys = {}
+  local profession_dupes = {}
+  for _,object in pairs(guildhall_objects) do
+    if(string.match(object.getName(), "Profession")) then
+      local card_info = {
+        guid = object.getGUID(),
+        object = object,
+        name = object.getName()
+      }
+      if(profession_dupes[card_info.name] ~= nil) then
+        log("Dupe "..card_info.name)
+        object.setPosition({-40,4,0})
+      else
+        local match = 1
+        for part in string.gmatch(object.getName(),"%w+") do
+          if(match == 2) then
+            card_info.profession = part
+          end
+          if(match == 3) then
+            card_info.color = part
+          end
+          match = match + 1
+        end
+        profession_cards[card_info.name] = card_info
+        profession_keys[card_info.name] = card_info.name
+        profession_dupes[card_info.name] = card_info
+      end
+    end
+  end
+  local card_keys = {}
+  for k,v in pairs(profession_cards) do
+    table.insert(card_keys, v.name)
+  end
+  table.sort(card_keys)
+  local profession_column = 0
+  local profession_row = 0
+  local last_card = nill
+  for _, card_name in ipairs(card_keys) do
+    local card_info = profession_cards[card_name]
+      if(last_card ~= nil) then
+        if(last_card.profession != card_info.profession) then
+          profession_column = profession_column + 1
+          profession_row = 0
+        else
+          profession_row = profession_row + 1
+        end
+    end
+    last_card = card_info
+    card_info.object.setPosition({-45 + (4 * profession_column), 2 + (1*profession_row),-15-(1 * profession_row)})
+  end
+end

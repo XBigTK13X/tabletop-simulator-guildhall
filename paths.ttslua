@@ -1,0 +1,43 @@
+SGH_PATHS = {
+  cardback = {
+    divider = mod_path("Backs/Cardback - Divider.png"),
+    profession = mod_path("Backs/Cardback - Profession.png"),
+    victory_point = mod_path("Backs/Cardback - Victory Point.png")
+  },
+  alliance = {
+    dividers = mod_path("Cards/Alliance - Dividers.png"),
+    professions = mod_path("Cards/Alliance - Professions.png"),
+    victory_points = mod_path("Cards/Alliance - Victory Points.png")
+  },
+  coalition = {
+    dividers = mod_path("Cards/Coalition - Dividers.png"),
+    professions = mod_path("Cards/Coalition - Professions.png"),
+    victory_points = mod_path("Cards/Coalition - Victory Points.png")
+  },
+  fellowship = {
+    dividers = mod_path("Cards/Fellowship - Dividers.png"),
+    professions = mod_path("Cards/Fellowship - Professions.png"),
+    victory_points = mod_path("Cards/Fellowship - Victory Points.png")
+  },
+  gathering = {
+    chapter_masters = mod_path("Cards/Gathering - Chapter Masters.png"),
+    dividers = mod_path("Cards/Gathering - Dividers.png"),
+    master_houses = mod_path("Cards/Gathering - Master Houses.png"),
+    professions = mod_path("Cards/Gathering - Professions.png"),
+    victory_points = mod_path("Cards/Gathering - Victory Points.png")
+  },
+  piece = {
+    victory_point_1 = {
+      front = mod_path("Pieces/Victory Point - 1 - Front.png"),
+      back = mod_path("Pieces/Victory Point - 1 - Back.png"),
+    },
+    victory_point_5 = {
+      front = mod_path("Pieces/Victory Point - 5 - Front.png"),
+      back = mod_path("Pieces/Victory Point - 5 - Back.png")
+    }
+  },
+  asset = {
+    game_mat = mod_path("Assets/Game Mat.png"),
+    player_mat = mod_path("Assets/Player Mat.png")
+  }
+}

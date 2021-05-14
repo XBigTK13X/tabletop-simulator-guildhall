@@ -1,0 +1,131 @@
+SGH_SETTINGS = {
+  debounce_seconds = 0.1,
+  rotation = {0, 180, 180},
+  card_scale = {1.5, 1.5, 1.5},
+  card_defaults = {
+    profession = {
+      color_dupe_count = 4,
+      color_order = {
+        "Blue",
+        "Green",
+        "Purple",
+        "Red",
+        "Yellow"
+      },
+    },
+    victory_point = {
+      dupe_count = 3,
+      cost = 1
+    },
+    chapter_master = {
+      dupe_count = 5
+    }
+  },
+  kinds = {
+    "alliance",
+    --"coalition",
+    --"fellowship",
+    --"gathering"
+  },
+  alliance = {
+    display = "Alliance",
+    professions = {
+      "Assassin",
+      "Marshal",
+      "Psion",
+      "Shaman",
+      "Spellblade",
+      "Wizard"
+    },
+    victory_points = {
+      {worth = 2, name = "VP - 2 - Steal 3 from Guildhall"},
+      {worth = 3, name = "VP - 3 - Steal 1 VP"},
+      {worth = 3, name = "VP - 3 - X from hand to guildhall"},
+      {worth = 4, name = "VP - 4 - Draw 5"},
+      {worth = 4, name = "VP - 4 - Extra Action"},
+      {worth = 4, name = "VP - 4 - Search 2 discard to guildhall"},
+      {worth = 5, count = 6, name = "VP - 5"},
+      {worth = 7, cost = 2, name = "VP - 7 - Two Actions"},
+      {worth = 9, cost = 2, name = "VP - 9"},
+    }
+  },
+  coalition = {
+    display = "Coalition",
+    professions = {
+      "Artificier",
+      "Barbarian",
+      "Cleric",
+      "Paladin",
+      "Rogue",
+      "Warlock"
+    },
+    victory_points = {
+      {worth = 2, name = "VP - 2 - Search Deck 3"},
+      {worth = 3, name = "VP - 3 - Guild X Cards"},
+      {worth = 3, name = "VP - 3 - Steal Chapter to Hand"},
+      {worth = 4, name = "VP - 4 - Draw 5"},
+      {worth = 4, name = "VP - 4 - Extra Action"},
+      {worth = 4, name = "VP - 4 - Steal Two Cards"},
+      {worth = 5, count = 6, name = "VP - 5"},
+      {worth = 7, cost = 2, name = "VP - 7 - Two Actions"},
+      {worth = 9, cost = 2, name = "VP - 9"},
+    }
+  },
+  fellowship = {
+    display = "Fellowship",
+    professions = {
+      "Artificier",
+      "Barbarian",
+      "Cleric",
+      "Paladin",
+      "Rogue",
+      "Warlock"
+    },
+    victory_points = {
+      {worth = 2, name = "VP - 2 - Steal Chapter"},
+      {worth = 3, name = "VP - 3 - Swap 1 for 2 Guildhall Cards"},
+      {worth = 3, name = "VP - 3 - Play X to Guildhall"},
+      {worth = 4, name = "VP - 4 - Steal 1 from guildhall"},
+      {worth = 4, name = "VP - 4 - Extra Action"},
+      {worth = 4, name = "VP - 4 - Draw 5"},
+      {worth = 5, count = 6, name = "VP - 5"},
+      {worth = 7, cost = 2, name = "VP - 7 - Two Actions"},
+      {worth = 9, cost = 2, name = "VP - 9"},
+    }
+  },
+  gathering = {
+    chapter_masters = {
+      "Archivist",
+      "Champion",
+      "Magus",
+      "Raider",
+      "Seeker",
+      "Tactician"
+    },
+    display = "Gathering",
+    master_houses = {
+      "Archeologist",
+      "Journeyman",
+      "Sage"
+    },
+    professions = {
+      "Alchemist",
+      "Arcanist",
+      "Avenger",
+      "Duelist",
+      "Invoker",
+      "Warlord"
+    },
+    victory_points = {
+      {worth = 2, name = "VP - 2 - Swap Hands"},
+      {worth = 3, name = "VP - 3 - Draw 2 to Any Guildhall"},
+      {worth = 3, name = "VP - 3 - Guild X Cards from Hand"},
+      {worth = 4, name = "VP - 4 - Destroy 5 VP"},
+      {worth = 4, name = "VP - 4 - Draw 5"},
+      {worth = 4, name = "VP - 4 - Extra Action"},
+      {worth = 5, count = 6, name = "VP - 5"},
+      {worth = 7, cost = 2, name = "VP - 7 - Two Actions"},
+      {worth = 9, cost = 2, name = "VP - 9"},
+    }
+  }
+}

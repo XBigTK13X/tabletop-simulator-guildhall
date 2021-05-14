@@ -1,0 +1,299 @@
+function generateTokens()
+  if(SGH.save_state.tokens == nil) then
+    local vp1_bag = spawnObject({
+      type = "Infinite_Bag",
+      position = {40,2,-20},
+      scale = {3,3,3}
+    })
+    local victory_point_1_token = spawnObject({
+      type = "Custom_Tile",
+      position = {40,5,-20},
+      rotation = {0,180,0},
+      scale = {.5,.5,.5},
+    })
+    victory_point_1_token.setCustomObject({
+      image = SGH_PATHS.piece.victory_point_1.front,
+      image_bottom = SGH_PATHS.piece.victory_point_1.back,
+      type = 2,
+      stackable = true
+    })
+
+    local vp2_bag = spawnObject({
+      type = "Infinite_Bag",
+      position = {30,2,-20},
+      scale = {3,3,3}
+    })
+    local victory_point_2_token = spawnObject({
+      type = "Custom_Tile",
+      position = {30,5,-20},
+      rotation = {0,180,0},
+      scale = {.5,.5,.5}
+    })
+    victory_point_2_token.setCustomObject({
+      image = SGH_PATHS.piece.victory_point_5.front,
+      image_bottom = SGH_PATHS.piece.victory_point_5.back,
+      type = 2,
+      stackable = true
+    })
+    SGH.save_state.tokens = true
+  end
+end
+
+function generateDecks(index, kind)
+  local original_position = {40, 2, 10}
+  local dupe_position = {40,2,-10}
+  local indexHeight = (index - 1) * 10
+  if (SGH.save_state[kind] == nil) then
+    log("Creating " .. kind .. " decks")
+    SGH_LOOKUP[kind] = {}
+
+    local divider_cards = spawnObject({
+        type = "DeckCustom",
+        position = original_position,
+        rotation = SGH_SETTINGS.rotation,
+        scale = SGH_SETTINGS.card_scale
+    })
+    local divider_columns = 4
+    local divider_rows = 2
+    local divider_count = 7
+    if (kind == 'gathering') then
+      divider_columns = 3
+      divider_rows = 3
+      divider_count = 9
+    end
+    divider_cards.setCustomObject({
+      face = SGH_PATHS[kind].dividers,
+      back = SGH_PATHS.cardback.divider,
+      unique_back = false,
+      width = divider_columns,
+      height = divider_rows,
+      number = divider_count,
+      sideways = false,
+      back_is_hidden = false
+    })
+
+    local profession_cards = spawnObject(
+      {
+        type = "DeckCustom",
+        position = original_position,
+        rotation = SGH_SETTINGS.rotation,
+        scale = SGH_SETTINGS.card_scale
+      }
+    )
+    profession_cards.setCustomObject({
+      face = SGH_PATHS[kind].professions,
+      back = SGH_PATHS.cardback.profession,
+      unique_back = false,
+      width = 5,
+      height = 6,
+      number = 30,
+      sideways = false,
+      back_is_hidden = false
+    })
+
+    SGH_LOOKUP[kind].profession_decks = {}
+    SGH_LOOKUP[kind].profession_dividers = {}
+    SGH_LOOKUP[kind].profession_columns = {}
+
+    for ii, profession in ipairs(SGH_SETTINGS[kind].professions) do
+      local deck = nil
+      local lastCard = nil
+      local divider_position = {-40 + (ii*8), 1, 20 - indexHeight}
+      local profession_divider = divider_cards.takeObject({position=divider_position,rotation={0,180,0}})
+      for jj, color in ipairs(SGH_SETTINGS.card_defaults.profession.color_order) do
+        local card = profession_cards.takeObject({position=dupe_position})
+        for kk = 1, SGH_SETTINGS.card_defaults.profession.color_dupe_count do
+          local profession_position = {-40 + (ii*8), 2, 16 - indexHeight}
+          local clone = card.clone({position=profession_position})
+          clone.setName("Profession - "..profession.." - "..color)
+          if(lastCard ~= nil) then
+            if(deck ~= nil) then
+              deck = deck.putObject(clone)
+            else
+              deck = lastCard.putObject(clone)
+              SGH_LOOKUP[kind].profession_decks[profession] = deck
+              SGH_LOOKUP[kind].profession_dividers[profession] = profession_divider
+            end
+          end
+          lastCard = clone
+        end
+        destroyObject(card)
+      end
+    end
+
+    if(SGH_CACHE.victory_point_card_objects == nil) then
+      SGH_CACHE.victory_point_card_objects = {}
+      SGH_CACHE.victory_point_cards = {}
+    end
+    SGH_CACHE.victory_point_card_objects[kind] = {}
+
+    local victory_point_cards = spawnObject({
+      type="DeckCustom",
+      position = original_position,
+      rotation = {0,180,180},
+      scale = {1.5,1.5,1.5}
+    })
+
+    victory_point_cards.setCustomObject({
+      face = SGH_PATHS[kind].victory_points,
+      back = SGH_PATHS.cardback.victory_point,
+      unique_back = false,
+      width = 3,
+      height = 3,
+      number = 9,
+      sideways = false,
+      back_is_hidden = false
+    })
+
+    local victory_point_divider_position = {-40, 1, 20 - indexHeight}
+    SGH_LOOKUP[kind].victory_point_divider = divider_cards.takeObject({position = victory_point_divider_position, rotation={0,180,0}})
+    local deck = nil
+    local last_card = nil
+    for ii, victory_point in ipairs(SGH_SETTINGS[kind].victory_points) do
+      SGH_CACHE.victory_point_cards[victory_point.name] = victory_point
+      local dupe_count = SGH_SETTINGS.card_defaults.victory_point.dupe_count
+      if(victory_point.count ~= nil) then
+        dupe_count = victory_point.count
+      end
+      local card = victory_point_cards.takeObject({dupe_position})
+      for jj = 1, dupe_count do
+        local victory_point_position = {-40, 2, 16 - indexHeight}
+        local clone = card.clone({position = victory_point_position})
+        if(last_card ~= nil) then
+          if(deck ~= nil) then
+            deck = deck.putObject(clone)
+          else
+            deck = last_card.putObject(clone)
+            SGH_LOOKUP[kind].victory_point_deck = deck
+          end
+        end
+        last_card = clone
+        table.insert(SGH_CACHE.victory_point_card_objects[kind], clone.guid)
+      end
+      destroyObject(card)
+    end
+
+    if (kind == "gathering") then
+      local divider_position = {-50 + (10*8), 1, 20}
+      divider_cards.takeObject({position=divider_position,rotation={0,180,0}})
+      local chapter_master_cards = spawnObject({
+        type="DeckCustom",
+        position = original_position,
+        rotation = {0,180,0},
+        scale = {1.5,1.5,1.5}
+      })
+
+      chapter_master_cards.setCustomObject({
+        face = SGH_PATHS[kind].chapter_masters,
+        back = SGH_PATHS.cardback.profession,
+        unique_back = false,
+        width = 3,
+        height = 2,
+        number = 6,
+        sideways = false,
+        back_is_hidden = false
+      })
+
+      for ii, chapter_master in ipairs(SGH_SETTINGS[kind].chapter_masters) do
+        local lastCard = nil
+        local card = chapter_master_cards.takeObject({position=dupe_position})
+        local deck = nil
+        for kk = 1, SGH_SETTINGS.card_defaults.chapter_master.dupe_count do
+          local deck_position = {-8.5 - (ii * 5) + (7*8), 2, 15}
+          local clone = card.clone({position=deck_position})
+          if(lastCard ~= nil) then
+            if(deck ~= nil) then
+              deck.putObject(clone)
+            else
+              deck = lastCard.putObject(clone)
+            end
+          end
+          lastCard = clone
+        end
+        destroyObject(card)
+      end
+
+      local divider_position = {-50 + (10*8), 1, 0}
+      divider_cards.takeObject({position=divider_position,rotation={0,180,0}})
+      local master_house_cards = spawnObject({
+        type="DeckCustom",
+        position = original_position,
+        rotation = {0,180,0},
+        scale = {1.5,1.5,1.5}
+      })
+
+      master_house_cards.setCustomObject({
+        face = SGH_PATHS[kind].master_houses,
+        back = SGH_PATHS.cardback.divider,
+        unique_back = false,
+        width = 2,
+        height = 2,
+        number = 3,
+        sideways = false,
+        back_is_hidden = false
+      })
+
+      for ii, master_house in ipairs(SGH_SETTINGS[kind].master_houses) do
+        local card = master_house_cards.takeObject({position=dupe_position})
+        local deck_position = {-34 - (ii*8) + (10*8), 2, -5}
+        local clone = card.clone({position=deck_position})
+        destroyObject(card)
+      end
+    end
+  end
+end
+
+function generatePlaySetButton(index, text, position, on_click)
+  local button_base = spawnObject({
+      type = "BlockRectangle",
+      position = position,
+  })
+  button_base.setColorTint({1,1,1,1})
+  button_base.setScale({.1,.1,.05})
+  button = button_base.createButton({
+    click_function = on_click,
+    label = text,
+    position = {0,.5,0},
+    rotation = {0,180,0},
+    width = 500,
+    height = 500,
+    scale = {30,10,30}
+  })
+  return button_base
+end
+
+function click_setup_alliance(obj, player, alt)
+  playSet("alliance")
+end
+
+function click_setup_coalition(obj, player, alt)
+  playSet("coalition")
+end
+
+function click_setup_fellowship(obj, player, alt)
+  playSet("fellowship")
+end
+
+function click_setup_gathering(obj, player, alt)
+  playSet("gathering")
+end
+
+function generateSets()
+  for ii, kind in ipairs(SGH_SETTINGS.kinds) do
+    local indexHeight = (ii - 1) * 10
+    generateDecks(ii, kind)
+    SGH_LOOKUP[kind].play_button = generatePlaySetButton(ii, SGH_SETTINGS[kind].display, {-50, 5, 16 - indexHeight}, "click_setup_"..kind)
+  end
+end
+
+function buildGame(save_data)
+  SGH = JSON.decode(save_data)
+  if (SGH == nil or SGH.save_state == nil) then
+    log("SGH empty")
+    SGH = {}
+    SGH.save_state = {}
+  end
+  generateTokens()
+  generateSets()
+  playSet("alliance")
+end

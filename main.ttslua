@@ -1,0 +1,29 @@
+--[[ Lua code. See documentation: https://api.tabletopsimulator.com/ --]]
+
+LOCAL_MOD_ROOT = "E:/guildhall/tts/"
+
+function mod_path(relative)
+  return LOCAL_MOD_ROOT..relative
+end
+
+SGH = {}
+SGH_CACHE = {}
+SGH_LOOKUP = {}
+
+require("Guildhall/paths")
+require("Guildhall/settings")
+require("Guildhall/setup")
+require("Guildhall/play")
+
+function onSave()
+  --savedData = JSON.encode(SGH)
+end
+
+function onLoad(savedData)
+  buildGame(savedData)
+end
+
+--[[ The onUpdate event is called once per frame. --]]
+function onUpdate()
+    --[[ print('onUpdate loop!') --]]
+end
