@@ -1,0 +1,46 @@
+top_level_keys = {
+  'game_mat',
+  'player_mat',
+  'vp1_bag',
+  'vp2_bag'
+}
+
+function safe_write(key)
+  if(SGH_LOOKUP[key] == nil) then
+    return nil
+  end
+  if(SGH_SAVE_STATE.guids == nil) then
+    SGH_SAVE_STATE.guids = {}
+  end
+  SGH_SAVE_STATE.guids[key] = SGH_LOOKUP[key].getGUID()
+end
+
+function safe_read(key)
+  if(SGH_SAVE_STATE == nil or SGH_SAVE_STATE.guids == nil or SGH_SAVE_STATE.guids[key] == nil) then
+    return nil
+  end
+  SGH_LOOKUP[key] = getObjectFromGUID(SGH_SAVE_STATE.guids[key])
+end
+
+function write_save_state()
+  if(true == true) then
+    return nil
+  end
+
+  for ii, key in ipairs(top_level_keys) do
+    safe_write(key)
+  end
+
+  for ii,player in pairs(Player.getPlayers()) do
+    SGH_SAVE_STATE.guids['player_'..player.color..'_guildhall_zone'] = SGH_LOOKUP.player[player.color].zone.guildhall.zone.getGUID()
+  end
+end
+
+-- Instead of picking IDs, should all object do a toJSON() and then loading be a spawnObjectJSON()?
+
+function read_save_state()
+  for ii, key in ipairs(top_level_keys) do
+    safe_read(key)
+  end
+  return false
+end

@@ -1,29 +1,38 @@
 --[[ Lua code. See documentation: https://api.tabletopsimulator.com/ --]]
 
-LOCAL_MOD_ROOT = "E:/guildhall/tts/"
+LOCAL_MOD_ROOT = "E:/board-game/guildhall/tts/"
 
 function mod_path(relative)
   return LOCAL_MOD_ROOT..relative
 end
 
-SGH = {}
-SGH_CACHE = {}
+SGH_SAVE_STATE = {}
 SGH_LOOKUP = {}
 
 require("Guildhall/paths")
 require("Guildhall/settings")
+require("Guildhall/pdf")
 require("Guildhall/setup")
 require("Guildhall/play")
+require("Guildhall/save_state")
 
 function onSave()
-  --savedData = JSON.encode(SGH)
+  write_save_state()
+  return JSON.encode(SGH_SAVE_STATE)
 end
 
-function onLoad(savedData)
-  buildGame(savedData)
-end
-
---[[ The onUpdate event is called once per frame. --]]
-function onUpdate()
-    --[[ print('onUpdate loop!') --]]
+function onLoad(save_data)
+  SGH_SAVE_STATE = JSON.decode(save_data)
+  if (SGH_SAVE_STATE == nil) then
+    log("SGH empty, rebuild")
+    SGH_LOOKUP = {}
+    SGH_SAVE_STATE = {}
+    buildGame()
+  else
+    log("Loading existing game state")
+    if(read_save_state() == false) then
+      log("Unable to rehydrate from save state, start from scratch")
+      buildGame()
+    end
+  end
 end

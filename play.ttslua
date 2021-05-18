@@ -1,22 +1,71 @@
-function playSet(kind)
-  log("Playing "..kind)
-  local gameMat = spawnObject({
-    type = "Custom_Board",
-    rotation = {0, 180, 0},
-    position = {0, 1, 0}
+function generateTokens(kind)
+  if(SGH_LOOKUP.vp1_bag == nil) then
+    SGH_LOOKUP.vp1_bag = spawnObject({
+      type = "Infinite_Bag",
+      position = {-10,2,-15},
+      scale = {2,2,2}
+    })
+    SGH_LOOKUP.vp1_bag.setName("1 VP Tokens")
+    local victory_point_1_token = spawnObject({
+      type = "Custom_Tile",
+      position = {-10,5,-15},
+      rotation = {0,180,0},
+      scale = {1,1,1},
+    })
+    victory_point_1_token.setCustomObject({
+      image = SGH_PATHS.piece.victory_point_1.front,
+      image_bottom = SGH_PATHS.piece.victory_point_1.back,
+      type = 2,
+      stackable = true
+    })
+    victory_point_1_token.setName("VP Token - 1")
 
-  })
-  gameMat.setCustomObject({
-    image = SGH_PATHS.asset.game_mat,
-  })
+    SGH_LOOKUP.vp5_bag = spawnObject({
+      type = "Infinite_Bag",
+      name = "5 VP Tokens",
+      position = {10,2,-15},
+      scale = {2,2,2}
+    })
+    SGH_LOOKUP.vp5_bag.setName("5 VP Tokens")
+    local victory_point_2_token = spawnObject({
+      type = "Custom_Tile",
+      position = {10,5,-15},
+      rotation = {0,180,0},
+      scale = {1,1,1}
+    })
+    victory_point_2_token.setName("VP Token - 5")
+    victory_point_2_token.setCustomObject({
+      image = SGH_PATHS.piece.victory_point_5.front,
+      image_bottom = SGH_PATHS.piece.victory_point_5.back,
+      type = 2,
+      stackable = true
+    })
+  end
+end
 
-  gameMat.setSnapPoints({
-    { position = {-5.5, 1, -5.00}, rotation = {0,0,0}, rotation_snap = true},
-    { position = {0, 1, -5.00}, rotation = {0,0,0}, rotation_snap = true},
-    { position = {5.5,1, -5.00}, rotation = {0,0,0}, rotation_snap = true},
-    { position = {0, 1, 5}, rotation = {0,0,0}, rotation_snap = true},
-  })
+function generateGameMat(kind)
+  if(SGH_LOOKUP.game_mat == nil) then
+    local game_mat = spawnObject({
+      type = "Custom_Board",
+      rotation = {0, 180, 0},
+      position = {0, 1, 0}
 
+    })
+    game_mat.setCustomObject({
+      image = SGH_PATHS.asset.game_mat,
+    })
+
+    game_mat.setSnapPoints({
+      { position = {-5.5, 1, -5.00}, rotation = {0,0,0}, rotation_snap = true},
+      { position = {0, 1, -5.00}, rotation = {0,0,0}, rotation_snap = true},
+      { position = {5.5,1, -5.00}, rotation = {0,0,0}, rotation_snap = true},
+      { position = {0, 1, 5}, rotation = {0,0,0}, rotation_snap = true},
+    })
+    SGH_LOOKUP.game_mat = game_mat
+  end
+end
+
+function generateProfessionDeck(kind)
   local profession_deck = nil
   local profession_deck_position = {-7.5, 3, 5.00}
   for ii, profession in ipairs(SGH_SETTINGS[kind].professions) do
@@ -29,7 +78,9 @@ function playSet(kind)
   profession_deck.setPosition(profession_deck_position)
   profession_deck.shuffle()
   SGH_LOOKUP.profession_deck = profession_deck
+end
 
+function generateVictoryPointMarket(kind)
   SGH_LOOKUP[kind].victory_point_deck.setPosition({0, 3, 5.00})
   SGH_LOOKUP[kind].victory_point_deck.shuffle()
 
@@ -42,7 +93,9 @@ function playSet(kind)
       rotation = {0,180,0}
     })
   end
+end
 
+function generateDividers(kind)
   for ii = 1,6 do
     local divider = SGH_LOOKUP[kind].profession_dividers[SGH_SETTINGS[kind].professions[ii]]
     if (ii < 4) then
@@ -52,41 +105,51 @@ function playSet(kind)
     end
   end
 
-  SGH_LOOKUP[kind].victory_point_divider.setPosition({0,2,-12})
+  SGH_LOOKUP[kind].victory_point_divider.setPosition({0,2,-15})
+end
 
-  local playerMat = spawnObject({
-    type = "Custom_Board",
-    rotation = {0, 180, 0},
-    position = {-35, 1, -12.5},
-    scale = {1.25,1.25,1.25}
-  })
+function generatePlayerMats()
+  if(SGH_LOOKUP.player_mat == nil) then
+    SGH_LOOKUP.player = {}
+    for ii,player in pairs(Player.getPlayers()) do
+      local mat_config = SGH_SETTINGS.player_mats[ii]
+      local player_mat = spawnObject({
+        type = "Custom_Board",
+        position = mat_config.position,
+        rotation = mat_config.rotation,
+        scale = {1.25,1.25,1.25}
+      })
 
-  playerMat.setCustomObject({
-    image = SGH_PATHS.asset.player_mat
-  })
-
- local guildhall_zone = spawnObject({
-    type = "ScriptingTrigger",
-    position = {-35, 0, -17},
-    scale = {25,8,8}
-  })
-
-  SGH_LOOKUP.player = {}
-  for ii,player in pairs(Player.getPlayers()) do
-    SGH_LOOKUP.player[player.color] = {
-        zone = {
-          guildhall = {
-            sort_debounce = nil,
-            zone = guildhall_zone,
-            objects = {}
-          }
+      player_mat.setCustomObject({
+        image = SGH_PATHS.asset.player_mat
+      })
+      local guildhall_zone = spawnObject({
+         type = "ScriptingTrigger",
+         position = mat_config.guildhall_zone.position,
+         scale = mat_config.guildhall_zone.scale
+       })
+      SGH_LOOKUP.player[player.color] = {
+          zone = {
+            guildhall = {
+              sort_debounce = nil,
+              zone = guildhall_zone,
+              objects = {}
+            }
+          },
+          mat = player_mat
         }
-      }
+    end
   end
+end
 
-  profession_deck.deal(10, "White")
-
-  destroyObject(SGH_LOOKUP[kind].play_button)
+function generateRulebook(kind)
+  local rulebook = spawnPDF(
+    'SGH_rulebook',
+    SGH_PATHS.asset.rulebook,
+    {-40, 1, -40}
+  )
+  rulebook.setRotation({180,0,0})
+  rulebook.setScale({3,1,3})
 end
 
 function onObjectEnterScriptingZone(zone, object)
@@ -105,14 +168,14 @@ function onObjectDrop(player_color, object)
       Wait.stop(SGH_LOOKUP.player[player_color].zone.guildhall.sort_debounce)
     end
     SGH_LOOKUP.player[player_color].zone.guildhall.sort_debounce = Wait.time(function()
-      sort_guildhall(player_color)
+      sortGuildhall(player_color)
       SGH_LOOKUP.player[player_color].zone.guildhall.sort_debounce = nil
     end,
     SGH_SETTINGS.debounce_seconds)
   end
 end
 
-function sort_guildhall(player_color)
+function sortGuildhall(player_color)
   local guildhall_objects = SGH_LOOKUP.player[player_color].zone.guildhall.zone.getObjects()
   local profession_cards = {}
   local profession_keys = {}
@@ -125,7 +188,6 @@ function sort_guildhall(player_color)
         name = object.getName()
       }
       if(profession_dupes[card_info.name] ~= nil) then
-        log("Dupe "..card_info.name)
         object.setPosition({-40,4,0})
       else
         local match = 1
@@ -165,4 +227,21 @@ function sort_guildhall(player_color)
     last_card = card_info
     card_info.object.setPosition({-45 + (4 * profession_column), 2 + (1*profession_row),-15-(1 * profession_row)})
   end
+end
+
+function playSet(kind)
+  log("Playing "..kind)
+  generateGameMat(kind)
+  generatePlayerMats(kind)
+  generateTokens(kind)
+  generateDividers(kind)
+  generateVictoryPointMarket(kind)
+  generateProfessionDeck(kind)
+  generateRulebook(kind)
+
+  if(SGH_LOOKUP.profession_deck ~= nil) then
+    SGH_LOOKUP.profession_deck.deal(10, "White")
+  end
+
+  destroyObject(SGH_LOOKUP[kind].play_button)
 end

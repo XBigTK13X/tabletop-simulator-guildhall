@@ -1,49 +1,8 @@
-function generateTokens()
-  if(SGH.save_state.tokens == nil) then
-    local vp1_bag = spawnObject({
-      type = "Infinite_Bag",
-      position = {40,2,-20},
-      scale = {3,3,3}
-    })
-    local victory_point_1_token = spawnObject({
-      type = "Custom_Tile",
-      position = {40,5,-20},
-      rotation = {0,180,0},
-      scale = {.5,.5,.5},
-    })
-    victory_point_1_token.setCustomObject({
-      image = SGH_PATHS.piece.victory_point_1.front,
-      image_bottom = SGH_PATHS.piece.victory_point_1.back,
-      type = 2,
-      stackable = true
-    })
-
-    local vp2_bag = spawnObject({
-      type = "Infinite_Bag",
-      position = {30,2,-20},
-      scale = {3,3,3}
-    })
-    local victory_point_2_token = spawnObject({
-      type = "Custom_Tile",
-      position = {30,5,-20},
-      rotation = {0,180,0},
-      scale = {.5,.5,.5}
-    })
-    victory_point_2_token.setCustomObject({
-      image = SGH_PATHS.piece.victory_point_5.front,
-      image_bottom = SGH_PATHS.piece.victory_point_5.back,
-      type = 2,
-      stackable = true
-    })
-    SGH.save_state.tokens = true
-  end
-end
-
 function generateDecks(index, kind)
   local original_position = {40, 2, 10}
   local dupe_position = {40,2,-10}
   local indexHeight = (index - 1) * 10
-  if (SGH.save_state[kind] == nil) then
+  if (SGH_LOOKUP[kind] == nil) then
     log("Creating " .. kind .. " decks")
     SGH_LOOKUP[kind] = {}
 
@@ -121,11 +80,11 @@ function generateDecks(index, kind)
       end
     end
 
-    if(SGH_CACHE.victory_point_card_objects == nil) then
-      SGH_CACHE.victory_point_card_objects = {}
-      SGH_CACHE.victory_point_cards = {}
+    if(SGH_LOOKUP.victory_point_card_objects == nil) then
+      SGH_LOOKUP.victory_point_card_objects = {}
+      SGH_LOOKUP.victory_point_cards = {}
     end
-    SGH_CACHE.victory_point_card_objects[kind] = {}
+    SGH_LOOKUP.victory_point_card_objects[kind] = {}
 
     local victory_point_cards = spawnObject({
       type="DeckCustom",
@@ -150,7 +109,7 @@ function generateDecks(index, kind)
     local deck = nil
     local last_card = nil
     for ii, victory_point in ipairs(SGH_SETTINGS[kind].victory_points) do
-      SGH_CACHE.victory_point_cards[victory_point.name] = victory_point
+      SGH_LOOKUP.victory_point_cards[victory_point.name] = victory_point
       local dupe_count = SGH_SETTINGS.card_defaults.victory_point.dupe_count
       if(victory_point.count ~= nil) then
         dupe_count = victory_point.count
@@ -168,7 +127,7 @@ function generateDecks(index, kind)
           end
         end
         last_card = clone
-        table.insert(SGH_CACHE.victory_point_card_objects[kind], clone.guid)
+        table.insert(SGH_LOOKUP.victory_point_card_objects[kind], clone.guid)
       end
       destroyObject(card)
     end
@@ -286,14 +245,9 @@ function generateSets()
   end
 end
 
-function buildGame(save_data)
-  SGH = JSON.decode(save_data)
-  if (SGH == nil or SGH.save_state == nil) then
-    log("SGH empty")
-    SGH = {}
-    SGH.save_state = {}
-  end
+function buildGame()
   generateTokens()
   generateSets()
+  -- TODO Remove debug code
   playSet("alliance")
 end

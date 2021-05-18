@@ -1,7 +1,79 @@
+local guildhall_zone = {
+  x = 4,
+  y = 37,
+  scale_x = 23,
+  scale_y = 10,
+  cards_x = 20,
+  cards_y = 33,
+  column_width = 4,
+  row_height = 1
+}
 SGH_SETTINGS = {
   debounce_seconds = 0.1,
   rotation = {0, 180, 180},
   card_scale = {1.5, 1.5, 1.5},
+  player_mats = {
+    -- White
+    {
+      position = {0, 1, -32},
+      rotation = {0, 180, 0},
+      guildhall_zone = {
+        position = {-guildhall_zone.x, 0, -guildhall_zone.y},
+        scale = {guildhall_zone.scale_x, 8, guildhall_zone.scale_y},
+        cards = {
+          x = -guildhall_zone.cards_x,
+          y = guildhall_zone.cards_y,
+          width = guildhall_zone.column_width,
+          height = guildhall_zone.row_height
+        }
+      }
+    },
+    -- Green
+    {
+      position = {0, 1, 32},
+      rotation = {0, 0, 0},
+      guildhall_zone = {
+        position = {guildhall_zone.x, 0, guildhall_zone.y},
+        scale = {guildhall_zone.scale_x, 8, guildhall_zone.scale_y},
+        cards = {
+          x = -guildhall_zone.cards_x,
+          y = guildhall_zone.cards_y,
+          width = guildhall_zone.column_width,
+          height = guildhall_zone.row_height
+        }
+      }
+    },
+    -- Blue
+    {
+      position = {32, 1, 0},
+      rotation = {0, 90, 0},
+      guildhall_zone = {
+        position = {guildhall_zone.y, 0, -guildhall_zone.x},
+        scale = {guildhall_zone.scale_y, 8, guildhall_zone.scale_x},
+        cards = {
+          x = -guildhall_zone.cards_x,
+          y = guildhall_zone.cards_y,
+          width = guildhall_zone.column_width,
+          height = guildhall_zone.row_height
+        }
+      }
+    },
+    -- Red
+    {
+      position = {-32, 1, 0},
+      rotation = {0, -90, 0},
+      guildhall_zone = {
+        position = {-guildhall_zone.y, 0, guildhall_zone.x},
+        scale = {guildhall_zone.scale_y, 8, guildhall_zone.scale_x},
+        cards = {
+          x = -guildhall_zone.cards_x,
+          y = guildhall_zone.cards_y,
+          width = guildhall_zone.column_width,
+          height = guildhall_zone.row_height
+        }
+      }
+    }
+  },
   card_defaults = {
     profession = {
       color_dupe_count = 4,

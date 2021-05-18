@@ -38,6 +38,7 @@ SGH_PATHS = {
   },
   asset = {
     game_mat = mod_path("Assets/Game Mat.png"),
-    player_mat = mod_path("Assets/Player Mat.png")
+    player_mat = mod_path("Assets/Player Mat.png"),
+    rulebook = mod_path("Assets/Rulebook.pdf")
   }
 }
