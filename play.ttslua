@@ -111,7 +111,12 @@ end
 function generatePlayerMats()
   if(SGH_LOOKUP.player_mat == nil) then
     SGH_LOOKUP.player = {}
+    SGH_LOOKUP.player_color_to_index = {}
+    SGH_LOOKUP.player_index_to_color = {}
     for ii,player in pairs(Player.getPlayers()) do
+      player.changeColor(SGH_SETTINGS.table_colors[ii])
+      SGH_LOOKUP.player_color_to_index[player.color] = ii
+      SGH_LOOKUP.player_index_to_color[ii] = player.color
       local mat_config = SGH_SETTINGS.player_mats[ii]
       local player_mat = spawnObject({
         type = "Custom_Board",
@@ -128,7 +133,7 @@ function generatePlayerMats()
          position = mat_config.guildhall_zone.position,
          scale = mat_config.guildhall_zone.scale
        })
-      SGH_LOOKUP.player[player.color] = {
+      SGH_LOOKUP.player[ii] = {
           zone = {
             guildhall = {
               sort_debounce = nil,
@@ -154,29 +159,33 @@ end
 
 function onObjectEnterScriptingZone(zone, object)
   for ii,player in pairs(Player.getPlayers()) do
-    if(zone.getGUID() == SGH_LOOKUP.player[player.color].zone.guildhall.zone.getGUID()) then
-      SGH_LOOKUP.player[player.color].zone.guildhall.objects[object.getGUID()] = object
+    if(zone.getGUID() == SGH_LOOKUP.player[ii].zone.guildhall.zone.getGUID()) then
+      if(string.find(object.getName(), "Profession")) then
+        SGH_LOOKUP.player[ii].zone.guildhall.objects[object.getGUID()] = object
+      end
     end
   end
 end
 
 function onObjectDrop(player_color, object)
-  if(SGH_LOOKUP.player[player_color].zone.guildhall.objects[object.getGUID()] ~= nil) then
-    SGH_LOOKUP.player[player_color].zone.guildhall.objects[object.getGUID()] = nil
+  local player_index = SGH_LOOKUP.player_color_to_index[player_color]
+  if(SGH_LOOKUP.player[player_index].zone.guildhall.objects[object.getGUID()] ~= nil) then
+    SGH_LOOKUP.player[player_index].zone.guildhall.objects[object.getGUID()] = nil
     object.setVelocity({0,0,0})
-    if(SGH_LOOKUP.player[player_color].zone.guildhall.sort_debounce ~= nil) then
-      Wait.stop(SGH_LOOKUP.player[player_color].zone.guildhall.sort_debounce)
+    if(SGH_LOOKUP.player[player_index].zone.guildhall.sort_debounce ~= nil) then
+      Wait.stop(SGH_LOOKUP.player[player_index].zone.guildhall.sort_debounce)
     end
-    SGH_LOOKUP.player[player_color].zone.guildhall.sort_debounce = Wait.time(function()
-      sortGuildhall(player_color)
-      SGH_LOOKUP.player[player_color].zone.guildhall.sort_debounce = nil
+    SGH_LOOKUP.player[player_index].zone.guildhall.sort_debounce = Wait.time(function()
+      sortGuildhall(player_index)
+      SGH_LOOKUP.player[player_index].zone.guildhall.sort_debounce = nil
     end,
     SGH_SETTINGS.debounce_seconds)
   end
 end
 
-function sortGuildhall(player_color)
-  local guildhall_objects = SGH_LOOKUP.player[player_color].zone.guildhall.zone.getObjects()
+function sortGuildhall(player_index)
+  local zone_config = SGH_SETTINGS.player_mats[player_index].guildhall_zone
+  local guildhall_objects = SGH_LOOKUP.player[player_index].zone.guildhall.zone.getObjects()
   local profession_cards = {}
   local profession_keys = {}
   local profession_dupes = {}
@@ -188,7 +197,7 @@ function sortGuildhall(player_color)
         name = object.getName()
       }
       if(profession_dupes[card_info.name] ~= nil) then
-        object.setPosition({-40,4,0})
+        object.setPosition({5.5,4,-5})
       else
         local match = 1
         for part in string.gmatch(object.getName(),"%w+") do
@@ -216,16 +225,17 @@ function sortGuildhall(player_color)
   local last_card = nill
   for _, card_name in ipairs(card_keys) do
     local card_info = profession_cards[card_name]
-      if(last_card ~= nil) then
-        if(last_card.profession != card_info.profession) then
-          profession_column = profession_column + 1
-          profession_row = 0
-        else
-          profession_row = profession_row + 1
-        end
+    if(last_card ~= nil) then
+      if(last_card.profession != card_info.profession) then
+        profession_column = profession_column + 1
+        profession_row = 0
+      else
+        profession_row = profession_row + 1
+      end
     end
     last_card = card_info
-    card_info.object.setPosition({-45 + (4 * profession_column), 2 + (1*profession_row),-15-(1 * profession_row)})
+    card_info.object.setPosition(zone_config.place_card(profession_column, profession_row))
+    card_info.object.setRotation(zone_config.rotation)
   end
 end
 
@@ -241,6 +251,9 @@ function playSet(kind)
 
   if(SGH_LOOKUP.profession_deck ~= nil) then
     SGH_LOOKUP.profession_deck.deal(10, "White")
+    SGH_LOOKUP.profession_deck.deal(10, "Red")
+    SGH_LOOKUP.profession_deck.deal(10, "Green")
+    SGH_LOOKUP.profession_deck.deal(10, "Blue")
   end
 
   destroyObject(SGH_LOOKUP[kind].play_button)

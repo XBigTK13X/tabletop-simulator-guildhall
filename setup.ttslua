@@ -28,7 +28,7 @@ function generateDecks(index, kind)
       height = divider_rows,
       number = divider_count,
       sideways = false,
-      back_is_hidden = false
+      back_is_hidden = true
     })
 
     local profession_cards = spawnObject(
@@ -47,7 +47,7 @@ function generateDecks(index, kind)
       height = 6,
       number = 30,
       sideways = false,
-      back_is_hidden = false
+      back_is_hidden = true
     })
 
     SGH_LOOKUP[kind].profession_decks = {}
@@ -101,7 +101,7 @@ function generateDecks(index, kind)
       height = 3,
       number = 9,
       sideways = false,
-      back_is_hidden = false
+      back_is_hidden = true
     })
 
     local victory_point_divider_position = {-40, 1, 20 - indexHeight}
@@ -150,7 +150,7 @@ function generateDecks(index, kind)
         height = 2,
         number = 6,
         sideways = false,
-        back_is_hidden = false
+        back_is_hidden = true
       })
 
       for ii, chapter_master in ipairs(SGH_SETTINGS[kind].chapter_masters) do
@@ -189,7 +189,7 @@ function generateDecks(index, kind)
         height = 2,
         number = 3,
         sideways = false,
-        back_is_hidden = false
+        back_is_hidden = true
       })
 
       for ii, master_house in ipairs(SGH_SETTINGS[kind].master_houses) do
