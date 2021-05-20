@@ -114,9 +114,11 @@ function generatePlayerMats()
     SGH_LOOKUP.player_color_to_index = {}
     SGH_LOOKUP.player_index_to_color = {}
     for ii,player in pairs(Player.getPlayers()) do
-      player.changeColor(SGH_SETTINGS.table_colors[ii])
-      SGH_LOOKUP.player_color_to_index[player.color] = ii
-      SGH_LOOKUP.player_index_to_color[ii] = player.color
+      local player_color = SGH_SETTINGS.table_colors[ii]
+      player.changeColor(player_color)
+      player.promote()
+      SGH_LOOKUP.player_color_to_index[player_color] = ii
+      SGH_LOOKUP.player_index_to_color[ii] = player_color
       local mat_config = SGH_SETTINGS.player_mats[ii]
       local player_mat = spawnObject({
         type = "Custom_Board",
@@ -184,7 +186,10 @@ function onObjectDrop(player_color, object)
 end
 
 function sortGuildhall(player_index)
+  log("Sorting guildhall "..player_index)
   local zone_config = SGH_SETTINGS.player_mats[player_index].guildhall_zone
+  log(SGH_SETTINGS.player_mats[player_index].name)
+  log(zone_config)
   local guildhall_objects = SGH_LOOKUP.player[player_index].zone.guildhall.zone.getObjects()
   local profession_cards = {}
   local profession_keys = {}
@@ -197,7 +202,8 @@ function sortGuildhall(player_index)
         name = object.getName()
       }
       if(profession_dupes[card_info.name] ~= nil) then
-        object.setPosition({5.5,4,-5})
+        object.setPosition({7.5,4,5})
+        object.setRotation({180,0,180})
       else
         local match = 1
         for part in string.gmatch(object.getName(),"%w+") do
