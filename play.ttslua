@@ -1,3 +1,23 @@
+function playSet(kind)
+  log("Playing "..kind)
+  generateGameMat(kind)
+  generatePlayerMats(kind)
+  generateTokens(kind)
+  generateDividers(kind)
+  generateVictoryPointMarket(kind)
+  generateProfessionDeck(kind)
+  generateRulebook(kind)
+
+  if(SGH_LOOKUP.profession_deck ~= nil) then
+    SGH_LOOKUP.profession_deck.deal(10, "White")
+    SGH_LOOKUP.profession_deck.deal(10, "Red")
+    SGH_LOOKUP.profession_deck.deal(10, "Green")
+    SGH_LOOKUP.profession_deck.deal(10, "Blue")
+  end
+
+  destroyObject(SGH_LOOKUP[kind].play_button)
+end
+
 function generateTokens(kind)
   if(SGH_LOOKUP.vp1_bag == nil) then
     SGH_LOOKUP.vp1_bag = spawnObject({
@@ -18,7 +38,7 @@ function generateTokens(kind)
       type = 2,
       stackable = true
     })
-    victory_point_1_token.setName("VP Token - 1")
+    victory_point_1_token.setName("VP - 1")
 
     SGH_LOOKUP.vp5_bag = spawnObject({
       type = "Infinite_Bag",
@@ -33,7 +53,7 @@ function generateTokens(kind)
       rotation = {0,180,0},
       scale = {1,1,1}
     })
-    victory_point_2_token.setName("VP Token - 5")
+    victory_point_2_token.setName("VP - 5")
     victory_point_2_token.setCustomObject({
       image = SGH_PATHS.piece.victory_point_5.front,
       image_bottom = SGH_PATHS.piece.victory_point_5.back,
@@ -135,11 +155,28 @@ function generatePlayerMats()
          position = mat_config.guildhall_zone.position,
          scale = mat_config.guildhall_zone.scale
        })
+       local victory_point_zone = spawnObject({
+         type = "ScriptingTrigger",
+         position = mat_config.victory_point_zone.position,
+         scale = mat_config.victory_point_zone.scale,
+       })
+       local victory_point_counter = spawnObject({
+         type = "3DText",
+         rotation = mat_config.victory_point_counter.rotation,
+         position = mat_config.victory_point_counter.position,
+       })
+       victory_point_counter.TextTool.setValue("0")
       SGH_LOOKUP.player[ii] = {
           zone = {
             guildhall = {
               sort_debounce = nil,
               zone = guildhall_zone,
+              objects = {}
+            },
+            victory_point = {
+              sort_debounce = nil,
+              zone = victory_point_zone,
+              counter = victory_point_counter,
               objects = {}
             }
           },
@@ -166,6 +203,28 @@ function onObjectEnterScriptingZone(zone, object)
         SGH_LOOKUP.player[ii].zone.guildhall.objects[object.getGUID()] = object
       end
     end
+    if(zone.getGUID() == SGH_LOOKUP.player[ii].zone.victory_point.zone.getGUID()) then
+      if(string.find(object.getName(), "VP")) then
+        SGH_LOOKUP.player[ii].zone.victory_point.objects[object.getGUID()] = object
+      end
+    end
+  end
+end
+
+function onObjectLeaveScriptingZone(zone, object)
+  for ii,player in pairs(Player.getPlayers()) do
+    if(zone.getGUID() == SGH_LOOKUP.player[ii].zone.guildhall.zone.getGUID()) then
+      if(string.find(object.getName(), "Profession")) then
+        SGH_LOOKUP.player[ii].zone.guildhall.objects[object.getGUID()] = nil
+        debounceSortGuildhall(ii)
+      end
+    end
+    if(zone.getGUID() == SGH_LOOKUP.player[ii].zone.victory_point.zone.getGUID()) then
+      if(string.find(object.getName(), "VP")) then
+        SGH_LOOKUP.player[ii].zone.victory_point.objects[object.getGUID()] = nil
+        debounceUpdateVictoryPoints(ii)
+      end
+    end
   end
 end
 
@@ -174,22 +233,29 @@ function onObjectDrop(player_color, object)
   if(SGH_LOOKUP.player[player_index].zone.guildhall.objects[object.getGUID()] ~= nil) then
     SGH_LOOKUP.player[player_index].zone.guildhall.objects[object.getGUID()] = nil
     object.setVelocity({0,0,0})
-    if(SGH_LOOKUP.player[player_index].zone.guildhall.sort_debounce ~= nil) then
-      Wait.stop(SGH_LOOKUP.player[player_index].zone.guildhall.sort_debounce)
-    end
-    SGH_LOOKUP.player[player_index].zone.guildhall.sort_debounce = Wait.time(function()
-      sortGuildhall(player_index)
-      SGH_LOOKUP.player[player_index].zone.guildhall.sort_debounce = nil
-    end,
-    SGH_SETTINGS.debounce_seconds)
+    debounceSortGuildhall(player_index)
+  end
+  if(SGH_LOOKUP.player[player_index].zone.victory_point.objects[object.getGUID()] ~= nil) then
+    SGH_LOOKUP.player[player_index].zone.victory_point.objects[object.getGUID()] = nil
+    object.setVelocity({0,0,0})
+    debounceUpdateVictoryPoints(player_index)
   end
 end
 
+function debounceSortGuildhall(player_index)
+  if(SGH_LOOKUP.player[player_index].zone.guildhall.sort_debounce ~= nil) then
+    Wait.stop(SGH_LOOKUP.player[player_index].zone.guildhall.sort_debounce)
+  end
+  SGH_LOOKUP.player[player_index].zone.guildhall.sort_debounce = Wait.time(function()
+    sortGuildhall(player_index)
+    SGH_LOOKUP.player[player_index].zone.guildhall.sort_debounce = nil
+  end,
+  SGH_SETTINGS.debounce_seconds)
+end
+
 function sortGuildhall(player_index)
-  log("Sorting guildhall "..player_index)
+  local mat_config = SGH_SETTINGS.player_mats[player_index]
   local zone_config = SGH_SETTINGS.player_mats[player_index].guildhall_zone
-  log(SGH_SETTINGS.player_mats[player_index].name)
-  log(zone_config)
   local guildhall_objects = SGH_LOOKUP.player[player_index].zone.guildhall.zone.getObjects()
   local profession_cards = {}
   local profession_keys = {}
@@ -241,26 +307,34 @@ function sortGuildhall(player_index)
     end
     last_card = card_info
     card_info.object.setPosition(zone_config.place_card(profession_column, profession_row))
-    card_info.object.setRotation(zone_config.rotation)
+    card_info.object.setRotation(mat_config.rotation)
   end
 end
 
-function playSet(kind)
-  log("Playing "..kind)
-  generateGameMat(kind)
-  generatePlayerMats(kind)
-  generateTokens(kind)
-  generateDividers(kind)
-  generateVictoryPointMarket(kind)
-  generateProfessionDeck(kind)
-  generateRulebook(kind)
-
-  if(SGH_LOOKUP.profession_deck ~= nil) then
-    SGH_LOOKUP.profession_deck.deal(10, "White")
-    SGH_LOOKUP.profession_deck.deal(10, "Red")
-    SGH_LOOKUP.profession_deck.deal(10, "Green")
-    SGH_LOOKUP.profession_deck.deal(10, "Blue")
+function debounceUpdateVictoryPoints(player_index)
+  if(SGH_LOOKUP.player[player_index].zone.victory_point.sort_debounce ~= nil) then
+    Wait.stop(SGH_LOOKUP.player[player_index].zone.victory_point.sort_debounce)
   end
+  SGH_LOOKUP.player[player_index].zone.victory_point.sort_debounce = Wait.time(function()
+    updateVictoryPoints(player_index)
+    SGH_LOOKUP.player[player_index].zone.victory_point.sort_debounce = nil
+  end,
+  SGH_SETTINGS.debounce_seconds)
+end
 
-  destroyObject(SGH_LOOKUP[kind].play_button)
+function updateVictoryPoints(player_index)
+  local zone_objects = SGH_LOOKUP.player[player_index].zone.victory_point.zone.getObjects()
+  local total_victory_points = 0
+  for _,object in pairs(zone_objects) do
+    if(string.match(object.getName(), "VP")) then
+      local match = 1
+      for part in string.gmatch(object.getName(),"%w+") do
+        if(match == 2) then
+          total_victory_points = total_victory_points + tonumber(part)
+        end
+        match = match + 1
+      end
+    end
+  end
+  SGH_LOOKUP.player[player_index].zone.victory_point.counter.TextTool.setValue(""..total_victory_points)
 end

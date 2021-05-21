@@ -1,8 +1,20 @@
 local guildhall_zone = {
   x = 4,
   y = 37,
-  scale_x = 23,
+  scale_x = 26,
   scale_y = 10,
+}
+
+local victory_point_zone = {
+  x = -14,
+  y = 32,
+  scale_x = 8,
+  scale_y = 20
+}
+
+local victory_point_counter = {
+  x = 16,
+  y = 41.25
 }
 
 SGH_SETTINGS = {
@@ -23,11 +35,18 @@ SGH_SETTINGS = {
       guildhall_zone = {
         position = {-guildhall_zone.x, 0, -guildhall_zone.y},
         scale = {guildhall_zone.scale_x, 8, guildhall_zone.scale_y},
-        rotation = {180,0,180},
         place_card = function(column, row)
-          return {-12 + (4 * column), 2 + (1 * row),-35 - (1 * row)}
+          return {-14 + (4 * column), 2 + (1 * row),-35 - (1 * row)}
         end
       },
+      victory_point_zone = {
+        position = {-victory_point_zone.x, 0, -victory_point_zone.y},
+        scale = {victory_point_zone.scale_x, 8, victory_point_zone.scale_y},
+      },
+      victory_point_counter = {
+        position = {victory_point_counter.x, 2, -victory_point_counter.y},
+        rotation = {90, 0, 0}
+      }
     },
     {
       name = "Green",
@@ -36,10 +55,17 @@ SGH_SETTINGS = {
       guildhall_zone = {
         position = {guildhall_zone.x, 0, guildhall_zone.y},
         scale = {guildhall_zone.scale_x, 8, guildhall_zone.scale_y},
-        rotation = {0,0,0},
         place_card = function(column, row)
-          return {12 - (4 * column), 2 + (1 * row),35 + (1 * row)}
+          return {14 - (4 * column), 2 + (1 * row),35 + (1 * row)}
         end,
+      },
+      victory_point_zone = {
+        position = {victory_point_zone.x, 0, victory_point_zone.y},
+        scale = {victory_point_zone.scale_x, 8, victory_point_zone.scale_y},
+      },
+      victory_point_counter = {
+        position = {-victory_point_counter.x, 2, victory_point_counter.y},
+        rotation = {90, 180, 0}
       }
     },
     {
@@ -48,11 +74,18 @@ SGH_SETTINGS = {
       rotation = {0, 90, 0},
       guildhall_zone = {
         position = {guildhall_zone.y, 0, -guildhall_zone.x},
-        rotation = {0, 90, 0},
         scale = {guildhall_zone.scale_y, 8, guildhall_zone.scale_x},
         place_card = function(column, row)
-          return {35 + (1 * row), 2 + (1 * row),-15 + (4 * column)}
+          return {35 + (1 * row), 2 + (1 * row),-14 + (4 * column)}
         end
+      },
+      victory_point_zone = {
+        position = {victory_point_zone.y, 0, -victory_point_zone.x},
+        scale = {victory_point_zone.scale_y, 8, victory_point_zone.scale_x},
+      },
+      victory_point_counter = {
+        position = {victory_point_counter.y, 2, victory_point_counter.x},
+        rotation = {90, 270, 0}
       }
     },
     {
@@ -62,10 +95,17 @@ SGH_SETTINGS = {
       guildhall_zone = {
         position = {-guildhall_zone.y, 0, guildhall_zone.x},
         scale = {guildhall_zone.scale_y, 8, guildhall_zone.scale_x},
-        rotation = {180,90,180},
         place_card = function(column, row)
-          return {-35 - (1 * row), 2 + (1 * row),12 - (4 * column)}
+          return {-35 - (1 * row), 2 + (1 * row),14 - (4 * column)}
         end
+      },
+      victory_point_zone = {
+        position = {-victory_point_zone.y, 0, victory_point_zone.x},
+        scale = {victory_point_zone.scale_y, 8, victory_point_zone.scale_x},
+      },
+      victory_point_counter = {
+        position = {-victory_point_counter.y, 2, -victory_point_counter.x},
+        rotation = {90, 90, 0}
       }
     },
   },

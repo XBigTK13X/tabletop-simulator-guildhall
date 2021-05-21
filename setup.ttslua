@@ -118,6 +118,7 @@ function generateDecks(index, kind)
       for jj = 1, dupe_count do
         local victory_point_position = {-40, 2, 16 - indexHeight}
         local clone = card.clone({position = victory_point_position})
+        clone.setName(victory_point.name)
         if(last_card ~= nil) then
           if(deck ~= nil) then
             deck = deck.putObject(clone)
