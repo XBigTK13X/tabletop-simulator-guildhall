@@ -1,21 +1,29 @@
 function playSet(kind)
   log("Playing "..kind)
+  cleanup(kind)
   generateGameMat(kind)
   generatePlayerMats(kind)
   generateTokens(kind)
   generateDividers(kind)
   generateVictoryPointMarket(kind)
   generateProfessionDeck(kind)
-  generateRulebook(kind)
+end
 
-  if(SGH_LOOKUP.profession_deck ~= nil) then
-    SGH_LOOKUP.profession_deck.deal(10, "White")
-    SGH_LOOKUP.profession_deck.deal(10, "Red")
-    SGH_LOOKUP.profession_deck.deal(10, "Green")
-    SGH_LOOKUP.profession_deck.deal(10, "Blue")
+function cleanup(kind)
+  for button_id,button in pairs(SGH_LOOKUP.buttons.setup) do
+    destroyObject(button)
   end
-
-  destroyObject(SGH_LOOKUP[kind].play_button)
+  for ii,kind_entry in ipairs(SGH_SETTINGS.kinds) do
+    if(kind ~= kind_entry) then
+      log("Delete "..kind_entry)
+      for ii,object in ipairs(getObjectsWithTag(kind_entry)) do
+        destroyObject(object)
+      end
+    end
+  end
+  for ii,object in ipairs(getObjectsWithTag("expansion")) do
+    destroyObject(object)
+  end
 end
 
 function generateTokens(kind)
@@ -79,7 +87,6 @@ function generateGameMat(kind)
       { position = {-5.5, 1, -5.00}, rotation = {0,0,0}, rotation_snap = true},
       { position = {0, 1, -5.00}, rotation = {0,0,0}, rotation_snap = true},
       { position = {5.5,1, -5.00}, rotation = {0,0,0}, rotation_snap = true},
-      { position = {0, 1, 5}, rotation = {0,0,0}, rotation_snap = true},
     })
     SGH_LOOKUP.game_mat = game_mat
   end
@@ -186,16 +193,6 @@ function generatePlayerMats()
   end
 end
 
-function generateRulebook(kind)
-  local rulebook = spawnPDF(
-    'SGH_rulebook',
-    SGH_PATHS.asset.rulebook,
-    {-40, 1, -40}
-  )
-  rulebook.setRotation({180,0,0})
-  rulebook.setScale({3,1,3})
-end
-
 function onObjectEnterScriptingZone(zone, object)
   for ii,player in pairs(Player.getPlayers()) do
     if(zone.getGUID() == SGH_LOOKUP.player[ii].zone.guildhall.zone.getGUID()) then
@@ -229,16 +226,18 @@ function onObjectLeaveScriptingZone(zone, object)
 end
 
 function onObjectDrop(player_color, object)
-  local player_index = SGH_LOOKUP.player_color_to_index[player_color]
-  if(SGH_LOOKUP.player[player_index].zone.guildhall.objects[object.getGUID()] ~= nil) then
-    SGH_LOOKUP.player[player_index].zone.guildhall.objects[object.getGUID()] = nil
-    object.setVelocity({0,0,0})
-    debounceSortGuildhall(player_index)
-  end
-  if(SGH_LOOKUP.player[player_index].zone.victory_point.objects[object.getGUID()] ~= nil) then
-    SGH_LOOKUP.player[player_index].zone.victory_point.objects[object.getGUID()] = nil
-    object.setVelocity({0,0,0})
-    debounceUpdateVictoryPoints(player_index)
+  if(SGH_LOOKUP ~= nil and SGH_LOOKUP.player_color_to_index ~= nil) then
+    local player_index = SGH_LOOKUP.player_color_to_index[player_color]
+    if(SGH_LOOKUP.player[player_index].zone.guildhall.objects[object.getGUID()] ~= nil) then
+      SGH_LOOKUP.player[player_index].zone.guildhall.objects[object.getGUID()] = nil
+      object.setVelocity({0,0,0})
+      debounceSortGuildhall(player_index)
+    end
+    if(SGH_LOOKUP.player[player_index].zone.victory_point.objects[object.getGUID()] ~= nil) then
+      SGH_LOOKUP.player[player_index].zone.victory_point.objects[object.getGUID()] = nil
+      object.setVelocity({0,0,0})
+      debounceUpdateVictoryPoints(player_index)
+    end
   end
 end
 

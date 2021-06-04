@@ -130,9 +130,9 @@ SGH_SETTINGS = {
   },
   kinds = {
     "alliance",
-    --"coalition",
-    --"fellowship",
-    --"gathering"
+    "coalition",
+    "fellowship",
+    "gathering"
   },
   alliance = {
     display = "Alliance",
