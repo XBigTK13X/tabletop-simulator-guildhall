@@ -159,7 +159,7 @@ SGH_SETTINGS = {
   coalition = {
     display = "Coalition",
     professions = {
-      "Artificier",
+      "Artificer",
       "Barbarian",
       "Cleric",
       "Paladin",
@@ -181,12 +181,12 @@ SGH_SETTINGS = {
   fellowship = {
     display = "Fellowship",
     professions = {
-      "Artificier",
-      "Barbarian",
-      "Cleric",
-      "Paladin",
-      "Rogue",
-      "Warlock"
+      "Bard",
+      "Druid",
+      "Fighter",
+      "Monk",
+      "Ranger",
+      "Sorcerer"
     },
     victory_points = {
       {worth = 2, name = "VP - 2 - Steal Chapter"},
@@ -234,5 +234,37 @@ SGH_SETTINGS = {
       {worth = 7, cost = 2, name = "VP - 7 - Two Actions"},
       {worth = 9, cost = 2, name = "VP - 9"},
     }
+  },
+  old_worlde = {
+    professions = {
+      "Cleric",
+      "Fighter",
+      "Marshal",
+      "Monk",
+      "Rogue",
+      "Wizard"
+    },
+    coalition_Cleric = true,
+    fellowship_Fighter = true,
+    alliance_Marshal = true,
+    fellowship_Monk = true,
+    coalition_Rogue = true,
+    alliance_Wizard = true
+  },
+  job_faire = {
+    professions = {
+      "Artificer",
+      "Bard",
+      "Spellblade",
+      "Ranger",
+      "Shaman",
+      "Warlock"
+    },
+    coalition_Artificer = true,
+    fellowship_Bard = true,
+    alliance_Spellblade = true,
+    fellowship_Ranger = true,
+    alliance_Shaman = true,
+    coalition_Warlock = true
   }
 }

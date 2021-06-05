@@ -17,7 +17,9 @@ function cleanup(kind)
     if(kind ~= kind_entry) then
       log("Delete "..kind_entry)
       for ii,object in ipairs(getObjectsWithTag(kind_entry)) do
-        destroyObject(object)
+        if(not object.hasTag(kind)) then
+          destroyObject(object)
+        end
       end
     end
   end

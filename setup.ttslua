@@ -3,6 +3,18 @@ function generateDecks(index, kind)
   local dupe_position = {40,2,-10}
   local indexHeight = (index - 1) * 10
   if (SGH_LOOKUP[kind] == nil) then
+    if(SGH_LOOKUP['job_faire'] == nil) then
+      SGH_LOOKUP['job_faire'] = {
+        profession_decks = {},
+        profession_dividers = {}
+      }
+    end
+    if(SGH_LOOKUP['old_worlde'] == nil) then
+      SGH_LOOKUP['old_worlde'] = {
+        profession_decks = {},
+        profession_dividers = {}
+      }
+    end
     log("Creating " .. kind .. " decks")
     SGH_LOOKUP[kind] = {}
 
@@ -52,28 +64,50 @@ function generateDecks(index, kind)
 
     SGH_LOOKUP[kind].profession_decks = {}
     SGH_LOOKUP[kind].profession_dividers = {}
-    SGH_LOOKUP[kind].profession_columns = {}
 
     for ii, profession in ipairs(SGH_SETTINGS[kind].professions) do
+      local card_kind = kind.."_"..profession
+      local is_old_worlde = SGH_SETTINGS.old_worlde[card_kind] ~= nil
+      local is_job_faire = SGH_SETTINGS.job_faire[card_kind] ~= nil
       local deck = nil
       local lastCard = nil
       local divider_position = {-40 + (ii*8), 1, 20 - indexHeight}
       local profession_divider = divider_cards.takeObject({position=divider_position,rotation={0,180,0}})
+      if(is_job_faire) then
+        profession_divider.addTag('job_faire')
+      end
+      if(is_old_worlde) then
+        profession_divider.addTag('old_worlde')
+      end
       profession_divider.addTag(kind)
       for jj, color in ipairs(SGH_SETTINGS.card_defaults.profession.color_order) do
         local card = profession_cards.takeObject({position=dupe_position})
+        local card_name = "Profession - "..profession.." - "..color
         for kk = 1, SGH_SETTINGS.card_defaults.profession.color_dupe_count do
           local profession_position = {-40 + (ii*8), 2, 16 - indexHeight}
           local clone = card.clone({position=profession_position})
-          clone.setName("Profession - "..profession.." - "..color)
-          clone.addTag(kind)
+          clone.setName(card_name)
           if(lastCard ~= nil) then
             if(deck ~= nil) then
               deck = deck.putObject(clone)
             else
               deck = lastCard.putObject(clone)
+              deck.addTag(kind)
+              profession_divider.addTag(kind)
               SGH_LOOKUP[kind].profession_decks[profession] = deck
               SGH_LOOKUP[kind].profession_dividers[profession] = profession_divider
+              if(is_job_faire) then
+                SGH_LOOKUP['job_faire'].profession_decks[profession] = deck
+                SGH_LOOKUP['job_faire'].profession_dividers[profession] = profession_divider
+                deck.addTag('job_faire')
+                profession_divider.addTag('job_faire')
+              end
+              if(is_old_worlde) then
+                SGH_LOOKUP['old_worlde'].profession_decks[profession] = deck
+                SGH_LOOKUP['old_worlde'].profession_dividers[profession] = profession_divider
+                deck.addTag('old_worlde')
+                profession_divider.addTag('old_worlde')
+              end
             end
           end
           lastCard = clone
@@ -109,6 +143,12 @@ function generateDecks(index, kind)
     local victory_point_divider_position = {-40, 1, 20 - indexHeight}
     SGH_LOOKUP[kind].victory_point_divider = divider_cards.takeObject({position = victory_point_divider_position, rotation={0,180,0}})
     SGH_LOOKUP[kind].victory_point_divider.addTag(kind)
+    if(kind == 'fellowship') then
+      SGH_LOOKUP[kind].victory_point_divider.addTag('job_faire')
+      SGH_LOOKUP[kind].victory_point_divider.addTag('old_worlde')
+      SGH_LOOKUP['job_faire'].victory_point_divider = SGH_LOOKUP[kind].victory_point_divider
+      SGH_LOOKUP['old_worlde'].victory_point_divider = SGH_LOOKUP[kind].victory_point_divider
+    end
     local deck = nil
     local last_card = nil
     for ii, victory_point in ipairs(SGH_SETTINGS[kind].victory_points) do
@@ -122,13 +162,19 @@ function generateDecks(index, kind)
         local victory_point_position = {-40, 2, 16 - indexHeight}
         local clone = card.clone({position = victory_point_position})
         clone.setName(victory_point.name)
-        clone.addTag(kind)
         if(last_card ~= nil) then
           if(deck ~= nil) then
             deck = deck.putObject(clone)
           else
             deck = last_card.putObject(clone)
             SGH_LOOKUP[kind].victory_point_deck = deck
+            deck.addTag(kind)
+            if(kind == "fellowship") then
+              deck.addTag('job_faire')
+              deck.addTag('old_worlde')
+              SGH_LOOKUP['job_faire'].victory_point_deck = deck
+              SGH_LOOKUP['old_worlde'].victory_point_deck = deck
+            end
           end
         end
         last_card = clone
@@ -211,22 +257,6 @@ function generateDecks(index, kind)
   end
 end
 
-function click_setup_alliance(obj, player, alt)
-  playSet("alliance")
-end
-
-function click_setup_coalition(obj, player, alt)
-  playSet("coalition")
-end
-
-function click_setup_fellowship(obj, player, alt)
-  playSet("fellowship")
-end
-
-function click_setup_gathering(obj, player, alt)
-  playSet("gathering")
-end
-
 function generateSets()
   for ii, kind in ipairs(SGH_SETTINGS.kinds) do
     local indexHeight = (ii - 1) * 10
@@ -260,6 +290,30 @@ function generateButton(text, position, on_click)
   return button_base
 end
 
+function click_setup_alliance(obj, player, alt)
+  playSet("alliance")
+end
+
+function click_setup_coalition(obj, player, alt)
+  playSet("coalition")
+end
+
+function click_setup_fellowship(obj, player, alt)
+  playSet("fellowship")
+end
+
+function click_setup_gathering(obj, player, alt)
+  playSet("gathering")
+end
+
+function click_setup_old_worlde()
+  playSet("old_worlde")
+end
+
+function click_setup_job_faire()
+  playSet("job_faire")
+end
+
 function click_2_player()
   log("clicked")
 end
@@ -269,26 +323,6 @@ function click_3_player()
 end
 
 function click_4_player()
-  log("clicked")
-end
-
-function click_play_old_worlde()
-  -- Coalition - Cleric
-  -- Fellowship - Fighter
-  -- Alliance - Marshal
-  -- Fellowship - Monk
-  -- Coalition - Rogue
-  -- Alliance - Wizard
-  log("clicked")
-end
-
-function click_play_job_faire()
-  -- Coalition - Artificer
-  -- Fellowship - Bard
-  -- Alliance - Spellblade
-  -- Fellowship - Ranger
-  -- Alliance - Shaman
-  -- Coalition - Warlock
   log("clicked")
 end
 
@@ -304,8 +338,8 @@ function generateButtons()
   SGH_LOOKUP.buttons.setup.play_coalition = generateButton("Play\nCoalition", {-26, 5, -28}, "click_setup_coalition")
   SGH_LOOKUP.buttons.setup.play_fellowship = generateButton("Play\nFellowship", {-19, 5, -28}, "click_setup_fellowship")
   SGH_LOOKUP.buttons.setup.play_gathering = generateButton("Play\nGathering", {-12, 5, -28}, "click_setup_gathering")
-  SGH_LOOKUP.buttons.setup.play_old_world = generateButton("Play\nOld Worlde", {-5, 5, -28}, "click_play_old_worlde")
-  SGH_LOOKUP.buttons.setup.play_job_faire = generateButton("Play\nJob Faire", {2, 5, -28}, "click_play_job_faire")
+  SGH_LOOKUP.buttons.setup.play_old_world = generateButton("Play\nOld Worlde", {-5, 5, -28}, "click_setup_old_worlde")
+  SGH_LOOKUP.buttons.setup.play_job_faire = generateButton("Play\nJob Faire", {2, 5, -28}, "click_setup_job_faire")
 end
 
 function generateRulebook(kind)
