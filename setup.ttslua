@@ -15,7 +15,6 @@ function generateDecks(kind, player_count, index)
         profession_dividers = {}
       }
     end
-    log("Creating " .. kind .. " decks")
     SGH_LOOKUP[kind] = {}
 
     local divider_cards = spawnObject({
@@ -280,7 +279,13 @@ end
 
 function populateNotebook()
   local notes = [[
-    These are the instructions for the mod.
+    Use the VP deck buttons to prepare the appropriate amount of VP cards.
+
+    Once the VP deck is ready, choose which version of the game to play.
+
+    If a custom deck is desired, put it together and drop it on the Custom Game mat.
+
+    The chapter masters and master houses can also be placed on the Custom Game mat to be used after setup.
   ]]
   Notes.setNotes(notes)
 end
@@ -328,6 +333,10 @@ function click_setup_job_faire()
   playSet("job_faire")
 end
 
+function click_setup_custom_game()
+  playSet("custom_game")
+end
+
 function click_2_to_3_player()
   generateVictoryPointDecks(2)
 end
@@ -349,9 +358,34 @@ function generateButtons()
   SGH_LOOKUP.buttons.setup.play_gathering = generateButton("Play\nGathering", {-12, 5, -28}, "click_setup_gathering")
   SGH_LOOKUP.buttons.setup.play_old_world = generateButton("Play\nOld Worlde", {-5, 5, -28}, "click_setup_old_worlde")
   SGH_LOOKUP.buttons.setup.play_job_faire = generateButton("Play\nJob Faire", {2, 5, -28}, "click_setup_job_faire")
+
+  SGH_LOOKUP.buttons.setup.play_custom_game = generateButton("Play\nCustom\nGame", {-15, 5, -34}, "click_setup_custom_game")
 end
 
-function generateRulebook(kind)
+function generateCustomGameMat()
+  local player_mat = spawnObject({
+    type = "Custom_Board",
+    position = {35,1,-38},
+    rotation = {0,180,0},
+    scale = {1,1,1}
+  })
+
+  player_mat.setCustomObject({
+    image = SGH_PATHS.asset.custom_game_mat
+  })
+
+  local custom_game_zone = spawnObject({
+    type = "ScriptingTrigger",
+    position = {35,1,-38},
+    scale = {22,10,18}
+  })
+
+  SGH_LOOKUP.custom_game = {
+    zone = custom_game_zone
+  }
+end
+
+function generateRulebook()
   local rulebook = spawnPDF(
     'SGH_rulebook',
     SGH_PATHS.asset.rulebook,
@@ -364,6 +398,7 @@ end
 function buildGame()
   generateButtons()
   generateSets()
+  generateCustomGameMat()
   populateNotebook()
-  generateRulebook(kind)
+  generateRulebook()
 end

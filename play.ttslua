@@ -1,12 +1,13 @@
 function playSet(kind)
-  log("Playing "..kind)
   cleanup(kind)
   generateGameMat(kind)
   generatePlayerMats(kind)
   generateTokens(kind)
-  generateDividers(kind)
-  generateVictoryPointMarket(kind)
-  generateProfessionDeck(kind)
+  if(kind ~= "custom_game") then
+    generateDividers(kind)
+    generateVictoryPointMarket(kind)
+    generateProfessionDeck(kind)
+  end
 end
 
 function cleanup(kind)
@@ -15,16 +16,17 @@ function cleanup(kind)
   end
   for ii,kind_entry in ipairs(SGH_SETTINGS.kinds) do
     if(kind ~= kind_entry) then
-      log("Delete "..kind_entry)
       for ii,object in ipairs(getObjectsWithTag(kind_entry)) do
-        if(not object.hasTag(kind)) then
+        if(not object.hasTag(kind) and not object.hasTag("custom_game")) then
           destroyObject(object)
         end
       end
     end
   end
   for ii,object in ipairs(getObjectsWithTag("expansion")) do
-    destroyObject(object)
+    if(not object.hasTag("custom_game")) then
+      destroyObject(object)
+    end
   end
 end
 
@@ -196,32 +198,42 @@ function generatePlayerMats()
 end
 
 function onObjectEnterScriptingZone(zone, object)
-  for ii,player in pairs(Player.getPlayers()) do
-    if(zone.getGUID() == SGH_LOOKUP.player[ii].zone.guildhall.zone.getGUID()) then
-      if(string.find(object.getName(), "Profession")) then
-        SGH_LOOKUP.player[ii].zone.guildhall.objects[object.getGUID()] = object
+  if(SGH_LOOKUP.custom_game ~= nil and zone.getGUID() == SGH_LOOKUP.custom_game.zone.getGUID()) then
+    object.addTag("custom_game")
+  end
+  if(SGH_LOOKUP.player ~= nil) then
+    for ii,player in pairs(Player.getPlayers()) do
+      if(zone.getGUID() == SGH_LOOKUP.player[ii].zone.guildhall.zone.getGUID()) then
+        if(string.find(object.getName(), "Profession")) then
+          SGH_LOOKUP.player[ii].zone.guildhall.objects[object.getGUID()] = object
+        end
       end
-    end
-    if(zone.getGUID() == SGH_LOOKUP.player[ii].zone.victory_point.zone.getGUID()) then
-      if(string.find(object.getName(), "VP")) then
-        SGH_LOOKUP.player[ii].zone.victory_point.objects[object.getGUID()] = object
+      if(zone.getGUID() == SGH_LOOKUP.player[ii].zone.victory_point.zone.getGUID()) then
+        if(string.find(object.getName(), "VP")) then
+          SGH_LOOKUP.player[ii].zone.victory_point.objects[object.getGUID()] = object
+        end
       end
     end
   end
 end
 
 function onObjectLeaveScriptingZone(zone, object)
-  for ii,player in pairs(Player.getPlayers()) do
-    if(zone.getGUID() == SGH_LOOKUP.player[ii].zone.guildhall.zone.getGUID()) then
-      if(string.find(object.getName(), "Profession")) then
-        SGH_LOOKUP.player[ii].zone.guildhall.objects[object.getGUID()] = nil
-        debounceSortGuildhall(ii)
+  if(SGH_LOOKUP.custom_game ~= nil and zone.getGUID() == SGH_LOOKUP.custom_game.zone.getGUID()) then
+    object.removeTag("custom_game")
+  end
+  if(SGH_LOOKUP.player ~= nil) then
+    for ii,player in pairs(Player.getPlayers()) do
+      if(zone.getGUID() == SGH_LOOKUP.player[ii].zone.guildhall.zone.getGUID()) then
+        if(string.find(object.getName(), "Profession")) then
+          SGH_LOOKUP.player[ii].zone.guildhall.objects[object.getGUID()] = nil
+          debounceSortGuildhall(ii)
+        end
       end
-    end
-    if(zone.getGUID() == SGH_LOOKUP.player[ii].zone.victory_point.zone.getGUID()) then
-      if(string.find(object.getName(), "VP")) then
-        SGH_LOOKUP.player[ii].zone.victory_point.objects[object.getGUID()] = nil
-        debounceUpdateVictoryPoints(ii)
+      if(zone.getGUID() == SGH_LOOKUP.player[ii].zone.victory_point.zone.getGUID()) then
+        if(string.find(object.getName(), "VP")) then
+          SGH_LOOKUP.player[ii].zone.victory_point.objects[object.getGUID()] = nil
+          debounceUpdateVictoryPoints(ii)
+        end
       end
     end
   end
