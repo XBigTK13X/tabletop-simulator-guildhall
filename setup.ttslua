@@ -1,6 +1,6 @@
-function generateDecks(index, kind)
-  local original_position = {40, 2, 10}
-  local dupe_position = {40,2,-10}
+original_position = {40, 2, 10}
+dupe_position = {40,2,-10}
+function generateDecks(kind, player_count, index)
   local indexHeight = (index - 1) * 10
   if (SGH_LOOKUP[kind] == nil) then
     if(SGH_LOOKUP['job_faire'] == nil) then
@@ -116,30 +116,6 @@ function generateDecks(index, kind)
       end
     end
 
-    if(SGH_LOOKUP.victory_point_card_objects == nil) then
-      SGH_LOOKUP.victory_point_card_objects = {}
-      SGH_LOOKUP.victory_point_cards = {}
-    end
-    SGH_LOOKUP.victory_point_card_objects[kind] = {}
-
-    local victory_point_cards = spawnObject({
-      type="DeckCustom",
-      position = original_position,
-      rotation = {0,180,180},
-      scale = {1.5,1.5,1.5}
-    })
-
-    victory_point_cards.setCustomObject({
-      face = SGH_PATHS[kind].victory_points,
-      back = SGH_PATHS.cardback.victory_point,
-      unique_back = false,
-      width = 3,
-      height = 3,
-      number = 9,
-      sideways = false,
-      back_is_hidden = true
-    })
-
     local victory_point_divider_position = {-40, 1, 20 - indexHeight}
     SGH_LOOKUP[kind].victory_point_divider = divider_cards.takeObject({position = victory_point_divider_position, rotation={0,180,0}})
     SGH_LOOKUP[kind].victory_point_divider.addTag(kind)
@@ -149,39 +125,8 @@ function generateDecks(index, kind)
       SGH_LOOKUP['job_faire'].victory_point_divider = SGH_LOOKUP[kind].victory_point_divider
       SGH_LOOKUP['old_worlde'].victory_point_divider = SGH_LOOKUP[kind].victory_point_divider
     end
-    local deck = nil
-    local last_card = nil
-    for ii, victory_point in ipairs(SGH_SETTINGS[kind].victory_points) do
-      SGH_LOOKUP.victory_point_cards[victory_point.name] = victory_point
-      local dupe_count = SGH_SETTINGS.card_defaults.victory_point.dupe_count
-      if(victory_point.count ~= nil) then
-        dupe_count = victory_point.count
-      end
-      local card = victory_point_cards.takeObject({dupe_position})
-      for jj = 1, dupe_count do
-        local victory_point_position = {-40, 2, 16 - indexHeight}
-        local clone = card.clone({position = victory_point_position})
-        clone.setName(victory_point.name)
-        if(last_card ~= nil) then
-          if(deck ~= nil) then
-            deck = deck.putObject(clone)
-          else
-            deck = last_card.putObject(clone)
-            SGH_LOOKUP[kind].victory_point_deck = deck
-            deck.addTag(kind)
-            if(kind == "fellowship") then
-              deck.addTag('job_faire')
-              deck.addTag('old_worlde')
-              SGH_LOOKUP['job_faire'].victory_point_deck = deck
-              SGH_LOOKUP['old_worlde'].victory_point_deck = deck
-            end
-          end
-        end
-        last_card = clone
-        table.insert(SGH_LOOKUP.victory_point_card_objects[kind], clone.guid)
-      end
-      destroyObject(card)
-    end
+
+    generateVictoryPointDeck(kind, player_count, index)
 
     if (kind == "gathering") then
       local divider_position = {-50 + (10*8), 1, 20}
@@ -257,10 +202,79 @@ function generateDecks(index, kind)
   end
 end
 
+function generateVictoryPointDeck(kind, player_count, index)
+  local indexHeight = (index - 1) * 10
+  local victory_point_cards = spawnObject({
+    type="DeckCustom",
+    position = original_position,
+    rotation = {0,180,180},
+    scale = {1.5,1.5,1.5}
+  })
+  victory_point_cards.setCustomObject({
+    face = SGH_PATHS[kind].victory_points,
+    back = SGH_PATHS.cardback.victory_point,
+    unique_back = false,
+    width = 3,
+    height = 3,
+    number = 9,
+    sideways = false,
+    back_is_hidden = true
+  })
+  local deck = nil
+  local last_card = nil
+  local dupe_skip = {}
+  for ii, victory_point in ipairs(SGH_SETTINGS[kind].victory_points) do
+    local dupe_count = SGH_SETTINGS.card_defaults.victory_point.dupe_count
+    if(victory_point.count ~= nil) then
+      dupe_count = victory_point.count
+    end
+    if(player_count < 4) then
+      if(dupe_skip[victory_point.worth] == nil) then
+        dupe_skip[victory_point.worth] = 1
+        dupe_count = dupe_count - 1
+      end
+      if(dupe_skip[victory_point.worth] == 1 and victory_point.worth == 5) then
+        dupe_skip[victory_point.worth] = dupe_skip[victory_point.worth] + 1
+        dupe_count = dupe_count - 1
+      end
+    end
+    local card = victory_point_cards.takeObject({dupe_position})
+    for jj = 1, dupe_count do
+      local victory_point_position = {-40, 2, 16 - indexHeight}
+      local clone = card.clone({position = victory_point_position})
+      clone.setName(victory_point.name)
+      if(last_card ~= nil) then
+        if(deck ~= nil) then
+          deck = deck.putObject(clone)
+        else
+          deck = last_card.putObject(clone)
+          SGH_LOOKUP[kind].victory_point_deck = deck
+          deck.addTag(kind)
+          if(kind == "fellowship") then
+            deck.addTag('job_faire')
+            deck.addTag('old_worlde')
+            SGH_LOOKUP['job_faire'].victory_point_deck = deck
+            SGH_LOOKUP['old_worlde'].victory_point_deck = deck
+          end
+        end
+      end
+      last_card = clone
+    end
+    destroyObject(card)
+  end
+end
+
+function generateVictoryPointDecks(player_count)
+  for ii, kind in ipairs(SGH_SETTINGS.kinds) do
+    destroyObject(SGH_LOOKUP[kind].victory_point_deck)
+    SGH_LOOKUP[kind].victory_point_deck = nil
+    generateVictoryPointDeck(kind, player_count, ii)
+  end
+end
+
 function generateSets()
   for ii, kind in ipairs(SGH_SETTINGS.kinds) do
-    local indexHeight = (ii - 1) * 10
-    generateDecks(ii, kind)
+    generateDecks(kind, 4, ii)
   end
 end
 
@@ -314,25 +328,20 @@ function click_setup_job_faire()
   playSet("job_faire")
 end
 
-function click_2_player()
-  log("clicked")
-end
-
-function click_3_player()
-  log("clicked")
+function click_2_to_3_player()
+  generateVictoryPointDecks(2)
 end
 
 function click_4_player()
-  log("clicked")
+  generateVictoryPointDecks(4)
 end
 
 function generateButtons()
   SGH_LOOKUP.buttons = {
     setup = {}
   }
-  SGH_LOOKUP.buttons.setup.player_count_3 = generateButton("3 Player", {-15, 5, -22}, "click_3_player")
-  SGH_LOOKUP.buttons.setup.player_count_4 = generateButton("4 Player", {-5, 5, -22}, "click_4_player")
-  SGH_LOOKUP.buttons.setup.player_count_2 = generateButton("2 Player", {-25, 5, -22}, "click_2_player")
+  SGH_LOOKUP.buttons.setup.player_count_2 = generateButton("2-3 Player\nVP Deck", {-23, 5, -22}, "click_2_to_3_player")
+  SGH_LOOKUP.buttons.setup.player_count_4 = generateButton("4 Player\nVP Deck", {-9, 5, -22}, "click_4_player")
 
   SGH_LOOKUP.buttons.setup.play_alliance = generateButton("Play\nAlliance", {-33, 5, -28}, "click_setup_alliance")
   SGH_LOOKUP.buttons.setup.play_coalition = generateButton("Play\nCoalition", {-26, 5, -28}, "click_setup_coalition")
