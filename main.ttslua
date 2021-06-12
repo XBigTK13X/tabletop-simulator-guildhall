@@ -12,6 +12,7 @@ SGH_LOOKUP = {}
 require("Guildhall/paths")
 require("Guildhall/settings")
 require("Guildhall/pdf")
+require("Guildhall/hooks")
 require("Guildhall/setup")
 require("Guildhall/play")
 require("Guildhall/save_state")

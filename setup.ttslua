@@ -286,6 +286,8 @@ function populateNotebook()
     If a custom deck is desired, put it together and drop it on the Custom Game mat.
 
     The chapter masters and master houses can also be placed on the Custom Game mat to be used after setup.
+
+    Any custom selections will need to be manually placed on the game mat.
   ]]
   Notes.setNotes(notes)
 end
@@ -363,14 +365,14 @@ function generateButtons()
 end
 
 function generateCustomGameMat()
-  local player_mat = spawnObject({
+  local custom_game_mat = spawnObject({
     type = "Custom_Board",
     position = {35,1,-38},
     rotation = {0,180,0},
     scale = {1,1,1}
   })
 
-  player_mat.setCustomObject({
+  custom_game_mat.setCustomObject({
     image = SGH_PATHS.asset.custom_game_mat
   })
 
@@ -381,7 +383,8 @@ function generateCustomGameMat()
   })
 
   SGH_LOOKUP.custom_game = {
-    zone = custom_game_zone
+    zone = custom_game_zone,
+    mat = custom_game_mat
   }
 end
 

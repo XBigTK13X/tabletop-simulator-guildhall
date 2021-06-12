@@ -1,0 +1,57 @@
+function onObjectEnterScriptingZone(zone, object)
+  if(SGH_LOOKUP.custom_game ~= nil and zone.getGUID() == SGH_LOOKUP.custom_game.zone.getGUID()) then
+    object.addTag("custom_game")
+  end
+  if(SGH_LOOKUP.player ~= nil) then
+    for ii,player in pairs(Player.getPlayers()) do
+      if(zone.getGUID() == SGH_LOOKUP.player[ii].zone.guildhall.zone.getGUID()) then
+        if(string.find(object.getName(), "Profession")) then
+          SGH_LOOKUP.player[ii].zone.guildhall.objects[object.getGUID()] = object
+        end
+      end
+      if(zone.getGUID() == SGH_LOOKUP.player[ii].zone.victory_point.zone.getGUID()) then
+        if(string.find(object.getName(), "VP")) then
+          SGH_LOOKUP.player[ii].zone.victory_point.objects[object.getGUID()] = object
+        end
+      end
+    end
+  end
+end
+
+function onObjectLeaveScriptingZone(zone, object)
+  if(SGH_LOOKUP.custom_game ~= nil and zone.getGUID() == SGH_LOOKUP.custom_game.zone.getGUID()) then
+    object.removeTag("custom_game")
+  end
+  if(SGH_LOOKUP.player ~= nil) then
+    for ii,player in pairs(Player.getPlayers()) do
+      if(zone.getGUID() == SGH_LOOKUP.player[ii].zone.guildhall.zone.getGUID()) then
+        if(string.find(object.getName(), "Profession")) then
+          SGH_LOOKUP.player[ii].zone.guildhall.objects[object.getGUID()] = nil
+          debounceSortGuildhall(ii)
+        end
+      end
+      if(zone.getGUID() == SGH_LOOKUP.player[ii].zone.victory_point.zone.getGUID()) then
+        if(string.find(object.getName(), "VP")) then
+          SGH_LOOKUP.player[ii].zone.victory_point.objects[object.getGUID()] = nil
+          debounceUpdateVictoryPoints(ii)
+        end
+      end
+    end
+  end
+end
+
+function onObjectDrop(player_color, object)
+  if(SGH_LOOKUP ~= nil and SGH_LOOKUP.player_color_to_index ~= nil) then
+    local player_index = SGH_LOOKUP.player_color_to_index[player_color]
+    if(SGH_LOOKUP.player[player_index].zone.guildhall.objects[object.getGUID()] ~= nil) then
+      SGH_LOOKUP.player[player_index].zone.guildhall.objects[object.getGUID()] = nil
+      object.setVelocity({0,0,0})
+      debounceSortGuildhall(player_index)
+    end
+    if(SGH_LOOKUP.player[player_index].zone.victory_point.objects[object.getGUID()] ~= nil) then
+      SGH_LOOKUP.player[player_index].zone.victory_point.objects[object.getGUID()] = nil
+      object.setVelocity({0,0,0})
+      debounceUpdateVictoryPoints(player_index)
+    end
+  end
+end
