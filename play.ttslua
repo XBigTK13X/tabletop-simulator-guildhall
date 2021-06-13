@@ -1,17 +1,20 @@
 function playSet(kind)
-  cleanup(kind)
-  generateGameMat(kind)
-  generatePlayerMats(kind)
-  generateTokens(kind)
-  if(kind ~= "custom_game") then
-    generateDividers(kind)
-    generateVictoryPointMarket(kind)
-    generateProfessionDeck(kind)
+  if(SGHLookup:get('play_set_complete') ~= true) then
+    cleanup(kind)
+    generateGameMat(kind)
+    generatePlayerMats(kind)
+    generateTokens(kind)
+    if(kind ~= "custom_game") then
+      generateDividers(kind)
+      generateVictoryPointMarket(kind)
+      generateProfessionDeck(kind)
+    end
+    SGHLookup:set('play_set_complete',true)
   end
 end
 
 function cleanup(kind)
-  for button_id,button in pairs(SGH_LOOKUP.buttons.setup) do
+  for ii,button in ipairs(getObjectsWithTag('setup_button')) do
     destroyObject(button)
   end
   for ii,kind_entry in ipairs(SGH_SETTINGS.kinds) do
@@ -28,17 +31,16 @@ function cleanup(kind)
       destroyObject(object)
     end
   end
-  destroyObject(SGH_LOOKUP.custom_game.mat)
+  SGHLookup:destroyObject('custom_game_mat')
 end
 
 function generateTokens(kind)
-  if(SGH_LOOKUP.vp1_bag == nil) then
-    SGH_LOOKUP.vp1_bag = spawnObject({
+    local vp1_bag = spawnObject({
       type = "Infinite_Bag",
       position = {-10,2,-15},
       scale = {2,2,2}
     })
-    SGH_LOOKUP.vp1_bag.setName("1 VP Tokens")
+    vp1_bag.setName("1 VP Tokens")
     local victory_point_1_token = spawnObject({
       type = "Custom_Tile",
       position = {-10,5,-15},
@@ -53,31 +55,29 @@ function generateTokens(kind)
     })
     victory_point_1_token.setName("VP - 1")
 
-    SGH_LOOKUP.vp5_bag = spawnObject({
+    local vp5_bag = spawnObject({
       type = "Infinite_Bag",
       name = "5 VP Tokens",
       position = {10,2,-15},
       scale = {2,2,2}
     })
-    SGH_LOOKUP.vp5_bag.setName("5 VP Tokens")
-    local victory_point_2_token = spawnObject({
+    vp5_bag.setName("5 VP Tokens")
+    local victory_point_5_token = spawnObject({
       type = "Custom_Tile",
       position = {10,5,-15},
       rotation = {0,180,0},
       scale = {1,1,1}
     })
-    victory_point_2_token.setName("VP - 5")
-    victory_point_2_token.setCustomObject({
+    victory_point_5_token.setName("VP - 5")
+    victory_point_5_token.setCustomObject({
       image = SGH_PATHS.piece.victory_point_5.front,
       image_bottom = SGH_PATHS.piece.victory_point_5.back,
       type = 2,
       stackable = true
     })
-  end
 end
 
 function generateGameMat(kind)
-  if(SGH_LOOKUP.game_mat == nil) then
     local game_mat = spawnObject({
       type = "Custom_Board",
       rotation = {0, 180, 0},
@@ -93,8 +93,6 @@ function generateGameMat(kind)
       { position = {0, 1, -5.00}, rotation = {0,0,0}, rotation_snap = true},
       { position = {5.5,1, -5.00}, rotation = {0,0,0}, rotation_snap = true},
     })
-    SGH_LOOKUP.game_mat = game_mat
-  end
 end
 
 function generateProfessionDeck(kind)
@@ -102,34 +100,35 @@ function generateProfessionDeck(kind)
   local profession_deck_position = {-7.5, 3, 5.00}
   for ii, profession in ipairs(SGH_SETTINGS[kind].professions) do
     if(profession_deck == nil) then
-      profession_deck = SGH_LOOKUP[kind].profession_decks[SGH_SETTINGS[kind].professions[1]]
+      profession_deck = SGHLookup:getObject(kind..'_profession_decks_'..SGH_SETTINGS[kind].professions[1])
     else
-      profession_deck = profession_deck.putObject(SGH_LOOKUP[kind].profession_decks[profession])
+      profession_deck = profession_deck.putObject(SGHLookup:getObject(kind..'_profession_decks_'..profession))
     end
   end
   profession_deck.setPosition(profession_deck_position)
   profession_deck.shuffle()
-  SGH_LOOKUP.profession_deck = profession_deck
+  SGHLookup:setObject('profession_deck',profession_deck)
 end
 
 function generateVictoryPointMarket(kind)
-  SGH_LOOKUP[kind].victory_point_deck.setPosition({0, 3, 5.00})
-  SGH_LOOKUP[kind].victory_point_deck.shuffle()
+  local victory_point_deck = SGHLookup:getObject(kind..'_victory_point_deck')
+  victory_point_deck.setPosition({0, 3, 5.00})
+  victory_point_deck.shuffle()
 
   local vp_targets = {
     -8,-4,0,4,8
   }
   for ii = 1,5 do
-    local card = SGH_LOOKUP[kind].victory_point_deck.takeObject({
-      position = {vp_targets[ii],3,-3},
-      rotation = {0,180,0}
+    local card = victory_point_deck.takeObject({
+      position = {vp_targets[ii], 3, -3},
+      rotation = {0, 180, 0}
     })
   end
 end
 
 function generateDividers(kind)
   for ii = 1,6 do
-    local divider = SGH_LOOKUP[kind].profession_dividers[SGH_SETTINGS[kind].professions[ii]]
+    local divider = SGHLookup:getObject(kind..'_profession_dividers_'..SGH_SETTINGS[kind].professions[ii])
     if (ii < 4) then
       divider.setPosition({-15, 2, 10 - (ii * 5)})
     else
@@ -137,19 +136,17 @@ function generateDividers(kind)
     end
   end
 
-  SGH_LOOKUP[kind].victory_point_divider.setPosition({0,2,-15})
+  SGHLookup:getObject(kind..'_victory_point_divider').setPosition({0,2,-15})
 end
 
 function generatePlayerMats()
-  if(SGH_LOOKUP.player_mat == nil) then
-    SGH_LOOKUP.player = {}
-    SGH_LOOKUP.player_color_to_index = {}
-    SGH_LOOKUP.player_index_to_color = {}
+    local player_color_to_index = {}
+    local player_index_to_color = {}
     for ii,player in pairs(Player.getPlayers()) do
       local player_color = SGH_SETTINGS.table_colors[ii]
       player.changeColor(player_color)
-      SGH_LOOKUP.player_color_to_index[player_color] = ii
-      SGH_LOOKUP.player_index_to_color[ii] = player_color
+      player_color_to_index[player_color] = ii
+      player_index_to_color[ii] = player_color
       local mat_config = SGH_SETTINGS.player_mats[ii]
       local player_mat = spawnObject({
         type = "Custom_Board",
@@ -177,41 +174,18 @@ function generatePlayerMats()
          position = mat_config.victory_point_counter.position,
        })
        victory_point_counter.TextTool.setValue("0")
-      SGH_LOOKUP.player[ii] = {
-          zone = {
-            guildhall = {
-              sort_debounce = nil,
-              zone = guildhall_zone,
-              objects = {}
-            },
-            victory_point = {
-              sort_debounce = nil,
-              zone = victory_point_zone,
-              counter = victory_point_counter,
-              objects = {}
-            }
-          },
-          mat = player_mat
-        }
+       SGHLookup:setObject('player_'..ii..'_guildhall_zone', guildhall_zone)
+       SGHLookup:setObject('player_'..ii..'_victory_point_zone', guildhall_zone)
+       SGHLookup:setObject('player_'..ii..'_victory_point_counter', victory_point_counter)
     end
-  end
-end
-
-function debounceSortGuildhall(player_index)
-  if(SGH_LOOKUP.player[player_index].zone.guildhall.sort_debounce ~= nil) then
-    Wait.stop(SGH_LOOKUP.player[player_index].zone.guildhall.sort_debounce)
-  end
-  SGH_LOOKUP.player[player_index].zone.guildhall.sort_debounce = Wait.time(function()
-    sortGuildhall(player_index)
-    SGH_LOOKUP.player[player_index].zone.guildhall.sort_debounce = nil
-  end,
-  SGH_SETTINGS.debounce_seconds)
+    SGHLookup:set('player_color_to_index', player_color_to_index)
+    SGHLookup:set('player_index_to_color', player_index_to_color)
 end
 
 function sortGuildhall(player_index)
   local mat_config = SGH_SETTINGS.player_mats[player_index]
   local zone_config = SGH_SETTINGS.player_mats[player_index].guildhall_zone
-  local guildhall_objects = SGH_LOOKUP.player[player_index].zone.guildhall.zone.getObjects()
+  local guildhall_objects = SGHLookup:getObject('player_'..player_index..'_guildhall_zone').getObjects()
   local profession_cards = {}
   local profession_keys = {}
   local profession_dupes = {}
@@ -266,19 +240,8 @@ function sortGuildhall(player_index)
   end
 end
 
-function debounceUpdateVictoryPoints(player_index)
-  if(SGH_LOOKUP.player[player_index].zone.victory_point.sort_debounce ~= nil) then
-    Wait.stop(SGH_LOOKUP.player[player_index].zone.victory_point.sort_debounce)
-  end
-  SGH_LOOKUP.player[player_index].zone.victory_point.sort_debounce = Wait.time(function()
-    updateVictoryPoints(player_index)
-    SGH_LOOKUP.player[player_index].zone.victory_point.sort_debounce = nil
-  end,
-  SGH_SETTINGS.debounce_seconds)
-end
-
 function updateVictoryPoints(player_index)
-  local zone_objects = SGH_LOOKUP.player[player_index].zone.victory_point.zone.getObjects()
+  local zone_objects = SGHLookup:getObject('player_'..player_index..'_victory_point_zone').getObjects()
   local total_victory_points = 0
   for _,object in pairs(zone_objects) do
     if(string.match(object.getName(), "VP")) then
@@ -291,5 +254,5 @@ function updateVictoryPoints(player_index)
       end
     end
   end
-  SGH_LOOKUP.player[player_index].zone.victory_point.counter.TextTool.setValue(""..total_victory_points)
+  SGHLookup:getObject('player_'..player_index..'_victory_point_counter').TextTool.setValue(""..total_victory_points)
 end

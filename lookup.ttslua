@@ -1,0 +1,120 @@
+SGHLookup = {}
+
+function initLookup()
+  SGHLookup.lookup = {
+      values = {},
+      object_guids = {},
+      maps = {}
+    }
+  SGHLookup.transient = {}
+end
+
+initLookup()
+
+function SGHLookup:get(key)
+  return self.lookup.values[key]
+end
+
+function SGHLookup:set(key, value)
+  self.lookup.values[key] = value
+end
+
+function SGHLookup:getMap(map_key)
+  return self.lookup.maps[map_key]
+end
+
+function SGHLookup:addToMap(map_key, entry_key, entry_value)
+  if(not next(self.lookup.maps[map_key])) then
+    self.lookup.maps[map_key] = {}
+  end
+  self.lookup.maps[map_key][entry_key] = entry_value
+end
+
+function SGHLookup:removeFromMap(map_key, entry_key)
+  if(next(self.lookup.maps[map_key])) then
+    if(self.lookup.maps[map_key][entry_key] ~= nil) then
+      self.lookup.maps[map_key][entry_key] = nil
+    end
+  end
+end
+
+function SGHLookup:setObject(key, object)
+  self.lookup.object_guids[key] = object.getGUID()
+end
+
+function SGHLookup:getObject(key)
+  local object_id = self.lookup.object_guids[key]
+  if(object_id == nil) then
+    return nil
+  end
+  return getObjectFromGUID(object_id)
+end
+
+function SGHLookup:isObject(key, object)
+  local target =  self:getObject(key)
+  if(target == nil) then
+    return false
+  end
+  return target.getGUID() == object.getGUID()
+end
+
+function SGHLookup:destroyObject(key)
+  local target = self:getObject(key)
+  if(target ~= nil) then
+    self.lookup.object_guids[key] = nil
+    destroyObject(target)
+  end
+end
+
+function SGHLookup:debounce(key, func)
+  if(self.transient[key] ~= nil) then
+    Wait.stop(self.transient[key])
+  end
+  self.transient[key] = Wait.time(function()
+    func()
+    self.transient[key] = nil
+  end,
+  SGH_SETTINGS.debounce_seconds)
+end
+
+function SGHLookup:setTransient(key, value)
+  self.transient[key] = value
+end
+
+function SGHLookup:getTransient(key)
+  return self.transient[key]
+end
+
+function SGHLookup:toJSON()
+  return JSON.encode(self.lookup)
+end
+
+function SGHLookup:fromJSON(json)
+  if(json ~= nil) then
+    self.lookup = JSON.decode(json)
+    if(not next(self.lookup)) then
+      log("Lookup empty, regenerate from scratch")
+      initLookup()
+    else
+      local valid_save_data = true
+      for k,v in pairs(self.lookup.object_guids) do
+        if(getObjectFromGUID(v) == nil) then
+          valid_save_data = false
+        end
+      end
+      if(valid_save_data == true) then
+        log("Load complete, save data is valid")
+      else
+        log("Save state is stale or corrupted, regenerate")
+        initLookup()
+      end
+    end
+  else
+    log("Lookup nil, regenerate from scratch")
+    initLookup()
+  end
+end
+
+function SGHLookup:debug()
+  log(self.lookup)
+end

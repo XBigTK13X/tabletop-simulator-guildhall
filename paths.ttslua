@@ -1,3 +1,9 @@
+LOCAL_MOD_ROOT = "E:/board-game/guildhall/tts/"
+
+function mod_path(relative)
+  return LOCAL_MOD_ROOT..relative
+end
+
 SGH_PATHS = {
   cardback = {
     divider = mod_path("Backs/Cardback - Divider.png"),

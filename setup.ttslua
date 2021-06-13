@@ -1,21 +1,19 @@
 original_position = {40, 2, 10}
 dupe_position = {40,2,-10}
+
+function buildGame()
+  if(SGHLookup:get('setup_complete') ~= true) then
+    generateButtons()
+    generateSets()
+    generateCustomGameMat()
+    populateNotebook()
+    generateRulebook()
+    SGHLookup:set('setup_complete', true)
+  end
+end
+
 function generateDecks(kind, player_count, index)
   local indexHeight = (index - 1) * 10
-  if (SGH_LOOKUP[kind] == nil) then
-    if(SGH_LOOKUP['job_faire'] == nil) then
-      SGH_LOOKUP['job_faire'] = {
-        profession_decks = {},
-        profession_dividers = {}
-      }
-    end
-    if(SGH_LOOKUP['old_worlde'] == nil) then
-      SGH_LOOKUP['old_worlde'] = {
-        profession_decks = {},
-        profession_dividers = {}
-      }
-    end
-    SGH_LOOKUP[kind] = {}
 
     local divider_cards = spawnObject({
         type = "DeckCustom",
@@ -61,9 +59,6 @@ function generateDecks(kind, player_count, index)
       back_is_hidden = true
     })
 
-    SGH_LOOKUP[kind].profession_decks = {}
-    SGH_LOOKUP[kind].profession_dividers = {}
-
     for ii, profession in ipairs(SGH_SETTINGS[kind].professions) do
       local card_kind = kind.."_"..profession
       local is_old_worlde = SGH_SETTINGS.old_worlde[card_kind] ~= nil
@@ -93,17 +88,17 @@ function generateDecks(kind, player_count, index)
               deck = lastCard.putObject(clone)
               deck.addTag(kind)
               profession_divider.addTag(kind)
-              SGH_LOOKUP[kind].profession_decks[profession] = deck
-              SGH_LOOKUP[kind].profession_dividers[profession] = profession_divider
+              SGHLookup:setObject(kind..'_profession_decks_'..profession, deck)
+              SGHLookup:setObject(kind..'_profession_dividers_'..profession, profession_divider)
               if(is_job_faire) then
-                SGH_LOOKUP['job_faire'].profession_decks[profession] = deck
-                SGH_LOOKUP['job_faire'].profession_dividers[profession] = profession_divider
+                SGHLookup:setObject('job_faire_profession_decks_'..profession, deck)
+                SGHLookup:setObject('job_faire_profession_dividers_'..profession, profession_divider)
                 deck.addTag('job_faire')
                 profession_divider.addTag('job_faire')
               end
               if(is_old_worlde) then
-                SGH_LOOKUP['old_worlde'].profession_decks[profession] = deck
-                SGH_LOOKUP['old_worlde'].profession_dividers[profession] = profession_divider
+                SGHLookup:setObject('old_worlde_profession_decks_'..profession, deck)
+                SGHLookup:setObject('old_worlde_profession_dividers_'..profession, profession_divider)
                 deck.addTag('old_worlde')
                 profession_divider.addTag('old_worlde')
               end
@@ -116,13 +111,15 @@ function generateDecks(kind, player_count, index)
     end
 
     local victory_point_divider_position = {-40, 1, 20 - indexHeight}
-    SGH_LOOKUP[kind].victory_point_divider = divider_cards.takeObject({position = victory_point_divider_position, rotation={0,180,0}})
-    SGH_LOOKUP[kind].victory_point_divider.addTag(kind)
+    local victory_point_divider = divider_cards.takeObject({position = victory_point_divider_position, rotation={0,180,0}})
+    victory_point_divider.addTag(kind)
+    SGHLookup:setObject(kind..'_victory_point_divider',victory_point_divider)
+
     if(kind == 'fellowship') then
-      SGH_LOOKUP[kind].victory_point_divider.addTag('job_faire')
-      SGH_LOOKUP[kind].victory_point_divider.addTag('old_worlde')
-      SGH_LOOKUP['job_faire'].victory_point_divider = SGH_LOOKUP[kind].victory_point_divider
-      SGH_LOOKUP['old_worlde'].victory_point_divider = SGH_LOOKUP[kind].victory_point_divider
+      victory_point_divider.addTag('job_faire')
+      victory_point_divider.addTag('old_worlde')
+      SGHLookup:setObject('job_faire_victory_point_divider',victory_point_divider)
+      SGHLookup:setObject('old_worlde_victory_point_divider',victory_point_divider)
     end
 
     generateVictoryPointDeck(kind, player_count, index)
@@ -198,7 +195,6 @@ function generateDecks(kind, player_count, index)
         destroyObject(card)
       end
     end
-  end
 end
 
 function generateVictoryPointDeck(kind, player_count, index)
@@ -247,14 +243,14 @@ function generateVictoryPointDeck(kind, player_count, index)
           deck = deck.putObject(clone)
         else
           deck = last_card.putObject(clone)
-          SGH_LOOKUP[kind].victory_point_deck = deck
           deck.addTag(kind)
           if(kind == "fellowship") then
             deck.addTag('job_faire')
             deck.addTag('old_worlde')
-            SGH_LOOKUP['job_faire'].victory_point_deck = deck
-            SGH_LOOKUP['old_worlde'].victory_point_deck = deck
+            SGHLookup:setObject('job_faire_victory_point_deck', deck)
+            SGHLookup:setObject('old_worlde_victory_point_deck', deck)
           end
+          SGHLookup:setObject(kind..'_victory_point_deck', deck)
         end
       end
       last_card = clone
@@ -265,8 +261,7 @@ end
 
 function generateVictoryPointDecks(player_count)
   for ii, kind in ipairs(SGH_SETTINGS.kinds) do
-    destroyObject(SGH_LOOKUP[kind].victory_point_deck)
-    SGH_LOOKUP[kind].victory_point_deck = nil
+    SGHLookup:destroyObject(kind..'_victory_point_deck')
     generateVictoryPointDeck(kind, player_count, ii)
   end
 end
@@ -308,6 +303,7 @@ function generateButton(text, position, on_click)
     height = 500,
     scale = {50,10,40}
   })
+  button_base.addTag("setup_button")
   return button_base
 end
 
@@ -348,20 +344,15 @@ function click_4_player()
 end
 
 function generateButtons()
-  SGH_LOOKUP.buttons = {
-    setup = {}
-  }
-  SGH_LOOKUP.buttons.setup.player_count_2 = generateButton("2-3 Player\nVP Deck", {-23, 5, -22}, "click_2_to_3_player")
-  SGH_LOOKUP.buttons.setup.player_count_4 = generateButton("4 Player\nVP Deck", {-9, 5, -22}, "click_4_player")
-
-  SGH_LOOKUP.buttons.setup.play_alliance = generateButton("Play\nAlliance", {-33, 5, -28}, "click_setup_alliance")
-  SGH_LOOKUP.buttons.setup.play_coalition = generateButton("Play\nCoalition", {-26, 5, -28}, "click_setup_coalition")
-  SGH_LOOKUP.buttons.setup.play_fellowship = generateButton("Play\nFellowship", {-19, 5, -28}, "click_setup_fellowship")
-  SGH_LOOKUP.buttons.setup.play_gathering = generateButton("Play\nGathering", {-12, 5, -28}, "click_setup_gathering")
-  SGH_LOOKUP.buttons.setup.play_old_world = generateButton("Play\nOld Worlde", {-5, 5, -28}, "click_setup_old_worlde")
-  SGH_LOOKUP.buttons.setup.play_job_faire = generateButton("Play\nJob Faire", {2, 5, -28}, "click_setup_job_faire")
-
-  SGH_LOOKUP.buttons.setup.play_custom_game = generateButton("Play\nCustom\nGame", {-15, 5, -34}, "click_setup_custom_game")
+  SGHLookup:setObject('buttons_setup_player_count_2', generateButton("2-3 Player\nVP Deck", {-23, 5, -22}, "click_2_to_3_player"))
+  SGHLookup:setObject('buttons_setup_player_count_4', generateButton("4 Player\nVP Deck", {-9, 5, -22}, "click_4_player"))
+  SGHLookup:setObject('buttons_setup_play_alliance', generateButton("Play\nAlliance", {-33, 5, -28}, "click_setup_alliance"))
+  SGHLookup:setObject('buttons_setup_play_coalition', generateButton("Play\nCoalition", {-26, 5, -28}, "click_setup_coalition"))
+  SGHLookup:setObject('buttons_setup_play_fellowship', generateButton("Play\nFellowship", {-19, 5, -28}, "click_setup_fellowship"))
+  SGHLookup:setObject('buttons_setup_play_gathering', generateButton("Play\nGathering", {-12, 5, -28}, "click_setup_gathering"))
+  SGHLookup:setObject('buttons_setup_play_old_world', generateButton("Play\nOld Worlde", {-5, 5, -28}, "click_setup_old_worlde"))
+  SGHLookup:setObject('buttons_setup_play_job_faire', generateButton("Play\nJob Faire", {2, 5, -28}, "click_setup_job_faire"))
+  SGHLookup:setObject('buttons_setup_play_custom_game', generateButton("Play\nCustom\nGame", {-15, 5, -34}, "click_setup_custom_game"))
 end
 
 function generateCustomGameMat()
@@ -382,10 +373,8 @@ function generateCustomGameMat()
     scale = {22,10,18}
   })
 
-  SGH_LOOKUP.custom_game = {
-    zone = custom_game_zone,
-    mat = custom_game_mat
-  }
+  SGHLookup:setObject('custom_game_zone', custom_game_zone)
+  SGHLookup:setObject('custom_game_mat', custom_game_mat)
 end
 
 function generateRulebook()
@@ -396,12 +385,4 @@ function generateRulebook()
   )
   rulebook.setRotation({180,0,0})
   rulebook.setScale({3,1,3})
-end
-
-function buildGame()
-  generateButtons()
-  generateSets()
-  generateCustomGameMat()
-  populateNotebook()
-  generateRulebook()
 end
