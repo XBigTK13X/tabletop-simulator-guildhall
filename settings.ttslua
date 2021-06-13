@@ -18,7 +18,7 @@ local victory_point_counter = {
 }
 
 SGH_SETTINGS = {
-  enable_save_state = true,
+  mod_path_mode = "cloud",
   debounce_seconds = 0.1,
   rotation = {0, 180, 180},
   card_scale = {1.5, 1.5, 1.5},

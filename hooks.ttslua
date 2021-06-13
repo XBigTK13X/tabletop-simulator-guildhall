@@ -11,15 +11,15 @@ function onObjectEnterScriptingZone(zone, object)
   if(SGHLookup:isObject('custom_game_zone', zone)) then
     object.addTag("custom_game")
   end
-  for ii,player in pairs(Player.getPlayers()) do
-    if(SGHLookup:isObject('player_'..ii..'_guildhall_zone', zone)) then
+  for player_index,player in ipairs(Player.getPlayers()) do
+    if(SGHLookup:isObject('player_'..player_index..'_guildhall_zone', zone)) then
       if(string.find(object.getName(), "Profession")) then
-        SGHLookup:addToMap('player_'..ii..'_guildhall_zone_objects', object.getGUID(), true)
+        SGHLookup:addToMap('player_'..player_index..'_guildhall_zone_objects', object.getGUID(), true)
       end
     end
-    if(SGHLookup:isObject('player_'..ii..'_victory_point_zone', zone)) then
+    if(SGHLookup:isObject('player_'..player_index..'_victory_point_zone', zone)) then
       if(string.find(object.getName(), "VP")) then
-        SGHLookup:addToMap('player_'..ii..'_victory_point_zone_objects', object.getGUID(), true)
+        SGHLookup:addToMap('player_'..player_index..'_victory_point_zone_objects', object.getGUID(), true)
       end
     end
   end
@@ -29,20 +29,20 @@ function onObjectLeaveScriptingZone(zone, object)
   if(SGHLookup:isObject('custom_game_zone', zone)) then
     object.removeTag("custom_game")
   end
-  for ii,player in pairs(Player.getPlayers()) do
-    if(SGHLookup:isObject('player_'..ii..'_guildhall_zone', zone)) then
+  for player_index,player in ipairs(Player.getPlayers()) do
+    if(SGHLookup:isObject('player_'..player_index..'_guildhall_zone', zone)) then
       if(string.find(object.getName(), "Profession")) then
-        SGHLookup:removeFromMap('player_'..ii..'_guildhall_zone_objects', object.getGUID())
-        SGHLookup:debounce('player_'..ii..'_debounce_sort_guildhall', function()
-            sortGuildhall(ii)
+        SGHLookup:removeFromMap('player_'..player_index..'_guildhall_zone_objects', object.getGUID())
+        SGHLookup:debounce('player_'..player_index..'_debounce_sort_guildhall', function()
+            sortGuildhall(player_index)
         end)
       end
     end
-    if(SGHLookup:isObject('player_'..ii..'_victory_point_zone', zone)) then
+    if(SGHLookup:isObject('player_'..player_index..'_victory_point_zone', zone)) then
       if(string.find(object.getName(), "VP")) then
-        SGHLookup:removeFromMap('player_'..ii..'_victory_point_zone_objects', object.getGUID())
-        SGHLookup:debounce('player_'..ii..'_debounce_sort_guildhall', function()
-            updateVictoryPoints(ii)
+        SGHLookup:removeFromMap('player_'..player_index..'_victory_point_zone_objects', object.getGUID())
+        SGHLookup:debounce('player_'..player_index..'_debounce_update_victory_points', function()
+            updateVictoryPoints(player_index)
         end)
       end
     end
@@ -53,17 +53,17 @@ function onObjectDrop(player_color, object)
   local color_to_index = SGHLookup:get('player_color_to_index')
   if(color_to_index ~= nil) then
     local player_index = color_to_index[player_color]
-    if(SGHLookup:getMap('player_'..player_index..'_guildhall_zone_objects')) then
+    if(SGHLookup:mapHas('player_'..player_index..'_guildhall_zone_objects', object.getGUID())) then
       SGHLookup:removeFromMap('player_'..player_index..'_guildhall_zone_objects', object.getGUID())
       object.setVelocity({0,0,0})
       SGHLookup:debounce('player_'..player_index..'_debounce_sort_guildhall', function()
           sortGuildhall(player_index)
       end)
     end
-    if(SGHLookup:getMap('player_'..player_index..'_victory_point_zone_objects') ~= nil) then
+    if(SGHLookup:mapHas('player_'..player_index..'_victory_point_zone_objects', object.getGUID())) then
       SGHLookup:removeFromMap('player_'..player_index..'_victory_point_zone_objects', object.getGUID())
       object.setVelocity({0,0,0})
-      SGHLookup:debounce('player_'..player_index..'_debounce_sort_guildhall', function()
+      SGHLookup:debounce('player_'..player_index..'_debounce_update_victory_points', function()
           updateVictoryPoints(player_index)
       end)
     end

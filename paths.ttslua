@@ -1,51 +1,99 @@
 LOCAL_MOD_ROOT = "E:/board-game/guildhall/tts/"
-
 function mod_path(relative)
   return LOCAL_MOD_ROOT..relative
 end
-
 SGH_PATHS = {
-  cardback = {
-    divider = mod_path("Backs/Cardback - Divider.png"),
-    profession = mod_path("Backs/Cardback - Profession.png"),
-    victory_point = mod_path("Backs/Cardback - Victory Point.png")
-  },
-  alliance = {
-    dividers = mod_path("Cards/Alliance - Dividers.png"),
-    professions = mod_path("Cards/Alliance - Professions.png"),
-    victory_points = mod_path("Cards/Alliance - Victory Points.png")
-  },
-  coalition = {
-    dividers = mod_path("Cards/Coalition - Dividers.png"),
-    professions = mod_path("Cards/Coalition - Professions.png"),
-    victory_points = mod_path("Cards/Coalition - Victory Points.png")
-  },
-  fellowship = {
-    dividers = mod_path("Cards/Fellowship - Dividers.png"),
-    professions = mod_path("Cards/Fellowship - Professions.png"),
-    victory_points = mod_path("Cards/Fellowship - Victory Points.png")
-  },
-  gathering = {
-    chapter_masters = mod_path("Cards/Gathering - Chapter Masters.png"),
-    dividers = mod_path("Cards/Gathering - Dividers.png"),
-    master_houses = mod_path("Cards/Gathering - Master Houses.png"),
-    professions = mod_path("Cards/Gathering - Professions.png"),
-    victory_points = mod_path("Cards/Gathering - Victory Points.png")
-  },
-  piece = {
-    victory_point_1 = {
-      front = mod_path("Pieces/Victory Point - 1 - Front.png"),
-      back = mod_path("Pieces/Victory Point - 1 - Back.png"),
-    },
-    victory_point_5 = {
-      front = mod_path("Pieces/Victory Point - 5 - Front.png"),
-      back = mod_path("Pieces/Victory Point - 5 - Back.png")
-    }
-  },
-  asset = {
-    game_mat = mod_path("Assets/Game Mat.png"),
-    player_mat = mod_path("Assets/Player Mat.png"),
-    custom_game_mat = mod_path("Assets/Custom Game.png"),
-    rulebook = mod_path("Assets/Rulebook.pdf")
-  }
 }
+if(SGH_SETTINGS.mod_path_mode == "local") then
+  SGH_PATHS = {
+    cardback = {
+      divider = mod_path("Backs/Cardback - Divider.png"),
+      profession = mod_path("Backs/Cardback - Profession.png"),
+      victory_point = mod_path("Backs/Cardback - Victory Point.png")
+    },
+    alliance = {
+      dividers = mod_path("Cards/Alliance - Dividers.png"),
+      professions = mod_path("Cards/Alliance - Professions.png"),
+      victory_points = mod_path("Cards/Alliance - Victory Points.png")
+    },
+    coalition = {
+      dividers = mod_path("Cards/Coalition - Dividers.png"),
+      professions = mod_path("Cards/Coalition - Professions.png"),
+      victory_points = mod_path("Cards/Coalition - Victory Points.png")
+    },
+    fellowship = {
+      dividers = mod_path("Cards/Fellowship - Dividers.png"),
+      professions = mod_path("Cards/Fellowship - Professions.png"),
+      victory_points = mod_path("Cards/Fellowship - Victory Points.png")
+    },
+    gathering = {
+      chapter_masters = mod_path("Cards/Gathering - Chapter Masters.png"),
+      dividers = mod_path("Cards/Gathering - Dividers.png"),
+      master_houses = mod_path("Cards/Gathering - Master Houses.png"),
+      professions = mod_path("Cards/Gathering - Professions.png"),
+      victory_points = mod_path("Cards/Gathering - Victory Points.png")
+    },
+    piece = {
+      victory_point_1 = {
+        front = mod_path("Pieces/Victory Point - 1 - Front.png"),
+        back = mod_path("Pieces/Victory Point - 1 - Back.png"),
+      },
+      victory_point_5 = {
+        front = mod_path("Pieces/Victory Point - 5 - Front.png"),
+        back = mod_path("Pieces/Victory Point - 5 - Back.png")
+      }
+    },
+    asset = {
+      game_mat = mod_path("Assets/Game Mat.png"),
+      player_mat = mod_path("Assets/Player Mat.png"),
+      custom_game_mat = mod_path("Assets/Custom Game.png"),
+      rulebook = mod_path("Assets/Rulebook.pdf")
+    }
+  }
+else
+  SGH_PATHS = {
+    cardback = {
+      divider = "http://cloud-3.steamusercontent.com/ugc/1760325730573757835/ECE6F84EE5DFB07B4A6873DA6EA60DB8B6084370/",
+      profession = "http://cloud-3.steamusercontent.com/ugc/1760325730573757926/AADAF43E017C234262DAF64D3428BEB3C6E46481/",
+      victory_point = "http://cloud-3.steamusercontent.com/ugc/1760325730573757977/40CBBCB637ECD445BA10CA932A2CCDCDCEBABFA2/"
+    },
+    alliance = {
+      dividers = "http://cloud-3.steamusercontent.com/ugc/1760325730573759872/0E35F45B7B32E38E91E096936979DFAA98EC6755/",
+      professions = "http://cloud-3.steamusercontent.com/ugc/1760325730573760648/5092BDDC5266029AD9AB7FC55A4937FBCF8DB5B2/",
+      victory_points = "http://cloud-3.steamusercontent.com/ugc/1760325730573762558/0FF04DEC968157C3F3AB850C43F25BDF53DE359D/"
+    },
+    coalition = {
+      dividers = "http://cloud-3.steamusercontent.com/ugc/1760325730573763106/2B77609083756DAF17C7E844E209775EC259508E/",
+      professions = "http://cloud-3.steamusercontent.com/ugc/1760325730573763721/7D9BA32CDFCC971F1CE260253A377D83D7B24307/",
+      victory_points = "http://cloud-3.steamusercontent.com/ugc/1760325730573765621/4C743E5A65573D5CECF8485FA7CA8FE43968ABB2/"
+    },
+    fellowship = {
+      dividers = "http://cloud-3.steamusercontent.com/ugc/1760325730573766228/9C4C6A42EEB764018D84F22F87637A36514AFBCC/",
+      professions = "http://cloud-3.steamusercontent.com/ugc/1760325730573766759/74DBADB4139FEACF3798DD0568465C9D874F995C/",
+      victory_points = "http://cloud-3.steamusercontent.com/ugc/1760325730573768189/FEE9F2BD1D57ADF578CD7A31FBE980D154A796BC/"
+    },
+    gathering = {
+      chapter_masters = "http://cloud-3.steamusercontent.com/ugc/1760325730573768864/1DA1D4696950A6876AFAD36FF3D2759DB864E41F/",
+      dividers = "http://cloud-3.steamusercontent.com/ugc/1760325730573769351/E301642FD6ADA3532F98E10B3F3F2D1999E7CED4/",
+      master_houses = "http://cloud-3.steamusercontent.com/ugc/1760325730573770090/DD602FC0C7ABC49B2BA60519BAB91B1F955615E3/",
+      professions = "http://cloud-3.steamusercontent.com/ugc/1760325730573770453/359195C696A40125703C76622B3A3D2AB0A97BA8/",
+      victory_points = "http://cloud-3.steamusercontent.com/ugc/1760325730573770669/4285ACE0FDDDEA4CA4CD9E81EEFE80501703BF31/"
+    },
+    piece = {
+      victory_point_1 = {
+        front = "http://cloud-3.steamusercontent.com/ugc/1760325730573780873/A2A540EA86819E698D8508959620B4B50487A1EF/",
+        back = "http://cloud-3.steamusercontent.com/ugc/1760325730573780772/978C3AC44E41F687FAF2F09247C37AEA24D420E9/",
+      },
+      victory_point_5 = {
+        front = "http://cloud-3.steamusercontent.com/ugc/1760325730573780958/5919B09C40894FD40A579250FEC1A64A47464DFB/",
+        back = "http://cloud-3.steamusercontent.com/ugc/1760325730573780921/C8C8D14CFD1F8DE8CF5D3A6287EC0CCECF00769A/"
+      }
+    },
+    asset = {
+      game_mat = "http://cloud-3.steamusercontent.com/ugc/1760325730573753788/6AE61B53B21CADAD88970F9F1E52940A69FB4C26/",
+      player_mat = "http://cloud-3.steamusercontent.com/ugc/1760325730573753957/F48ABC3FDF34503F540C44B7E3F650206D3F7687/",
+      custom_game_mat = "http://cloud-3.steamusercontent.com/ugc/1760325730573755289/44BBB68FDF66D2455503966DEBCBCFD78D9E7A77/",
+      rulebook = "http://cloud-3.steamusercontent.com/ugc/1760325730573754146/1D3DD12BE2481470CCB6BD67E0353CCAF6AA0569/"
+    }
+  }
+end

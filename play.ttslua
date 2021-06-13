@@ -142,12 +142,12 @@ end
 function generatePlayerMats()
     local player_color_to_index = {}
     local player_index_to_color = {}
-    for ii,player in pairs(Player.getPlayers()) do
-      local player_color = SGH_SETTINGS.table_colors[ii]
+    for player_index,player in ipairs(Player.getPlayers()) do
+      local player_color = SGH_SETTINGS.table_colors[player_index]
       player.changeColor(player_color)
-      player_color_to_index[player_color] = ii
-      player_index_to_color[ii] = player_color
-      local mat_config = SGH_SETTINGS.player_mats[ii]
+      player_color_to_index[player_color] = player_index
+      player_index_to_color[player_index] = player_color
+      local mat_config = SGH_SETTINGS.player_mats[player_index]
       local player_mat = spawnObject({
         type = "Custom_Board",
         position = mat_config.position,
@@ -174,9 +174,9 @@ function generatePlayerMats()
          position = mat_config.victory_point_counter.position,
        })
        victory_point_counter.TextTool.setValue("0")
-       SGHLookup:setObject('player_'..ii..'_guildhall_zone', guildhall_zone)
-       SGHLookup:setObject('player_'..ii..'_victory_point_zone', guildhall_zone)
-       SGHLookup:setObject('player_'..ii..'_victory_point_counter', victory_point_counter)
+       SGHLookup:setObject('player_'..player_index..'_guildhall_zone', guildhall_zone)
+       SGHLookup:setObject('player_'..player_index..'_victory_point_zone', victory_point_zone)
+       SGHLookup:setObject('player_'..player_index..'_victory_point_counter', victory_point_counter)
     end
     SGHLookup:set('player_color_to_index', player_color_to_index)
     SGHLookup:set('player_index_to_color', player_index_to_color)

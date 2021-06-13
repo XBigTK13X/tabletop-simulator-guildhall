@@ -1,7 +1,23 @@
 --[[ Lua code. See documentation: https://api.tabletopsimulator.com/ --]]
 
-require("Guildhall/paths")
+-- This mod requires Flex Table (https://steamcommunity.com/sharedfiles/filedetails/?id=1169112551&searchtext=flex+table)
+-- Flex Table settings
+-- Image = Felt - Grey
+-- Scale = 2.6 x 2.6
+
+-- Workshop ID - 2515791887
+
+-- To load the mod from scratch, follow these steps.
+-- 1. Create a new table
+-- 2. Load the Flex Table
+-- 3. Set it to the parameters above
+-- 4. Launch Atom with the TTS plugin
+-- 5. Edit Global*.ttslua
+-- 6. Replace all the contents with `require("Guildhall/main")`
+-- 7. Save and load the changes, the mod should now be ready to go
+
 require("Guildhall/settings")
+require("Guildhall/paths")
 require("Guildhall/lookup")
 require("Guildhall/pdf")
 require("Guildhall/setup")

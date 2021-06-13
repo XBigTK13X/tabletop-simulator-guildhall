@@ -24,18 +24,25 @@ function SGHLookup:getMap(map_key)
 end
 
 function SGHLookup:addToMap(map_key, entry_key, entry_value)
-  if(not next(self.lookup.maps[map_key])) then
+  if(self.lookup.maps[map_key] == nil) then
     self.lookup.maps[map_key] = {}
   end
   self.lookup.maps[map_key][entry_key] = entry_value
 end
 
 function SGHLookup:removeFromMap(map_key, entry_key)
-  if(next(self.lookup.maps[map_key])) then
+  if(self.lookup.maps[map_key] ~= nil and next(self.lookup.maps[map_key])) then
     if(self.lookup.maps[map_key][entry_key] ~= nil) then
       self.lookup.maps[map_key][entry_key] = nil
     end
   end
+end
+
+function SGHLookup:mapHas(map_key, entry_key)
+  if(self.lookup.maps[map_key] ~= nil and next(self.lookup.maps[map_key])) then
+    return self.lookup.maps[map_key][entry_key] ~= nil
+  end
+  return false
 end
 
 function SGHLookup:setObject(key, object)
@@ -92,21 +99,29 @@ end
 function SGHLookup:fromJSON(json)
   if(json ~= nil) then
     self.lookup = JSON.decode(json)
-    if(not next(self.lookup)) then
+    if(self.lookup == nil or not next(self.lookup)) then
       log("Lookup empty, regenerate from scratch")
       initLookup()
     else
       local valid_save_data = true
-      for k,v in pairs(self.lookup.object_guids) do
-        if(getObjectFromGUID(v) == nil) then
-          valid_save_data = false
+      if(self.lookup.values.setup_complete ~= true and self.lookup.values.play_set_complete ~= true) then
+        for k,v in pairs(self.lookup.object_guids) do
+          if(getObjectFromGUID(v) == nil) then
+            log('miss')
+            log(k)
+            log(v)
+            valid_save_data = false
+            break
+          end
         end
-      end
-      if(valid_save_data == true) then
-        log("Load complete, save data is valid")
+        if(valid_save_data == true) then
+          log("Load complete, save data is valid")
+        else
+          log("Save state is stale or corrupted, regenerate")
+          initLookup()
+        end
       else
-        log("Save state is stale or corrupted, regenerate")
-        initLookup()
+        log("Setup and play set has completed, don't regenerate the lookup")
       end
     end
   else
